@@ -10,4 +10,7 @@ app.get("/api/ping", (req, res) => {
     res.json({ mensaje: "QRoll funcionando" });
 });
 
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
+
 module.exports = app;

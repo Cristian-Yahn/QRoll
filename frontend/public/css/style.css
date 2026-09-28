@@ -1,0 +1,126 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
+    background: #f7f8fa;
+    color: #1a1a1a;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 360px;
+}
+
+h1 {
+    font-size: 1.3rem;
+    margin: 0 0 1.2rem;
+    text-align: center;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tabs button {
+    flex: 1;
+    padding: 0.6rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #5f6368;
+    border-bottom: 2px solid transparent;
+}
+
+.tabs button.activo {
+    color: #2f6fed;
+    border-bottom-color: #2f6fed;
+    font-weight: 600;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+label {
+    font-size: 0.8rem;
+    color: #5f6368;
+}
+
+input {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #d0d2d6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+button[type="submit"] {
+    margin-top: 0.4rem;
+    padding: 0.6rem;
+    background: #2f6fed;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background: #245bcb;
+}
+
+.enlace-secundario {
+    text-align: center;
+    margin-top: 0.8rem;
+    font-size: 0.8rem;
+}
+
+.enlace-secundario a {
+    color: #2f6fed;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.mensaje {
+    font-size: 0.82rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+    display: none;
+}
+
+.mensaje.error {
+    background: #fdecea;
+    color: #c62828;
+    display: block;
+}
+
+.mensaje.ok {
+    background: #e8f5e9;
+    color: #2e7d32;
+    display: block;
+}
+
+.oculto {
+    display: none;
+}

@@ -1,0 +1,170 @@
+:root[data-tema="claro"] {
+    --bs-body-bg: #f7f8fa;
+    --bs-body-color: #1a1a1a;
+    --bs-secondary-color: #5f6368;
+    --bs-border-color: #c7cad1;
+    --bs-tertiary-bg: #ffffff;
+    --bs-primary: #2f6fed;
+    --bs-primary-rgb: 47, 111, 237;
+    --bs-success: #2e7d32;
+    --bs-success-rgb: 46, 125, 50;
+    --bs-danger: #c62828;
+    --bs-danger-rgb: 198, 40, 40;
+    --bs-card-bg: #ffffff;
+    --logo-bg: #2f6fed;
+}
+
+:root[data-tema="medio"] {
+    --bs-body-bg: #0d1b3d;
+    --bs-body-color: #f1f3f8;
+    --bs-secondary-color: #8ca3d8;
+    --bs-border-color: #24356b;
+    --bs-tertiary-bg: #122452;
+    --bs-primary: #3d8bff;
+    --bs-primary-rgb: 61, 139, 255;
+    --bs-success: #4cd97b;
+    --bs-success-rgb: 76, 217, 123;
+    --bs-danger: #ff6b6b;
+    --bs-danger-rgb: 255, 107, 107;
+    --bs-card-bg: #122452;
+    --bs-emphasis-color: #f1f3f8;
+    --logo-bg: #3d8bff;
+}
+
+:root[data-tema="oscuro"] {
+    --bs-body-bg: #121417;
+    --bs-body-color: #f5f5f5;
+    --bs-secondary-color: #9aa0a6;
+    --bs-border-color: #2b2e33;
+    --bs-tertiary-bg: #1b1e22;
+    --bs-primary: #6c9bff;
+    --bs-primary-rgb: 108, 155, 255;
+    --bs-success: #66bb6a;
+    --bs-success-rgb: 102, 187, 106;
+    --bs-danger: #e57373;
+    --bs-danger-rgb: 229, 115, 115;
+    --bs-card-bg: #1b1e22;
+    --bs-emphasis-color: #f5f5f5;
+    --logo-bg: #6c9bff;
+}
+
+:root[data-tema="medio"],
+:root[data-tema="oscuro"] {
+    color-scheme: dark;
+}
+:root[data-tema="claro"] {
+    color-scheme: light;
+}
+
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.card {
+    background-color: var(--bs-card-bg);
+    border-color: var(--bs-border-color);
+}
+
+.form-control {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    border-width: 1.5px;
+    color: var(--bs-body-color);
+}
+.form-control:focus {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+.logo-app {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--logo-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0 auto 1rem;
+}
+
+.navbar-brand,
+.navbar .nav-link {
+    color: var(--bs-body-color) !important;
+}
+
+.selector-tema .btn {
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-padding-x: 0.6rem;
+    --bs-btn-font-size: 0.78rem;
+}
+
+/* ===== Tamaño de fuente configurable ===== */
+:root[data-fuente="pequena"] {
+    font-size: 14px;
+}
+:root[data-fuente="mediana"] {
+    font-size: 16px;
+}
+:root[data-fuente="grande"] {
+    font-size: 18px;
+}
+
+/* Botón flotante de preferencias */
+.btn-preferencias {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bs-tertiary-bg);
+    border: 1.5px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1040;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-preferencias:hover {
+    border-color: var(--bs-primary);
+}
+
+#modal-preferencias .modal-content {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-border-color);
+}
+
+#modal-preferencias .modal-header,
+#modal-preferencias .modal-footer {
+    border-color: var(--bs-border-color);
+}
+
+.form-select {
+    background-color: var(--bs-body-bg);
+    border-color: var(--bs-border-color);
+    border-width: 1.5px;
+    color: var(--bs-body-color);
+}
+
+.form-select:focus {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border-color: var(--bs-primary);
+}
+
+:root[data-tema="medio"] .form-select,
+:root[data-tema="oscuro"] .form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23F1F3F8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
