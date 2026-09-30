@@ -13,4 +13,7 @@ app.get("/api/ping", (req, res) => {
 const authRoutes = require("./routes/authRoutes");
 app.use("/api/auth", authRoutes);
 
+const cursoRoutes = require("./routes/cursoRoutes");
+app.use("/api/cursos", cursoRoutes);
+
 module.exports = app;
