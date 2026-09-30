@@ -15,6 +15,11 @@ function mostrarAlerta(texto, tipo) {
     alerta.className = `alert alert-${tipo}`;
 }
 
+function limpiarAlerta() {
+    alerta.className = "alert d-none";
+    alerta.textContent = "";
+}
+
 function renderizarCursos(cursos) {
     listaCursos.innerHTML = "";
 
@@ -57,6 +62,64 @@ async function cargarCursos() {
         mostrarAlerta("No se pudo conectar con el servidor", "danger");
     }
 }
+
+// ----- Crear curso -----
+document.getElementById("form-crear-curso").addEventListener("submit", async e => {
+    e.preventDefault();
+    limpiarAlerta();
+
+    const nombre_curso = document.getElementById("crear-nombre-curso").value;
+
+    try {
+        const res = await fetch("/api/cursos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre_curso, id_usuario: usuario.id_usuario }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            mostrarAlerta(data.error || "No se pudo crear el curso", "danger");
+            return;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById("modal-crear")).hide();
+        document.getElementById("form-crear-curso").reset();
+        mostrarAlerta(`Curso creado. Código de acceso: ${data.curso.codigo_acceso}`, "success");
+        cargarCursos();
+    } catch (err) {
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    }
+});
+
+// ----- Unirse a curso -----
+document.getElementById("form-unirse-curso").addEventListener("submit", async e => {
+    e.preventDefault();
+    limpiarAlerta();
+
+    const codigo_acceso = document.getElementById("unirse-codigo").value.toUpperCase();
+
+    try {
+        const res = await fetch("/api/cursos/unirse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ codigo_acceso, id_usuario: usuario.id_usuario }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            mostrarAlerta(data.error || "No se pudo unir al curso", "danger");
+            return;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById("modal-unirse")).hide();
+        document.getElementById("form-unirse-curso").reset();
+        mostrarAlerta(`Te uniste a "${data.curso.nombre_curso}" correctamente`, "success");
+        cargarCursos();
+    } catch (err) {
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    }
+});
 
 document.getElementById("btn-salir").addEventListener("click", () => {
     localStorage.removeItem("usuario");

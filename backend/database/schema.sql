@@ -29,3 +29,10 @@ CREATE TABLE IF NOT EXISTS Inscripcion (
   FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
   UNIQUE (id_curso, id_usuario)
 );
+
+CREATE TABLE IF NOT EXISTS Clase (
+  id_clase INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_curso INTEGER NOT NULL,
+  fecha DATE NOT NULL,
+  FOREIGN KEY (id_curso) REFERENCES Curso(id_curso)
+);

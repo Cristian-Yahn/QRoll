@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { listar } = require("../controllers/cursoController");
+const { crear, listarMisCursos, unirse, obtenerUno } = require("../controllers/cursoController");
+const claseRoutes = require("../routes/claseRoutes");
 
-router.get("/", listar);
+router.post("/", crear);
+router.get("/", listarMisCursos);
+router.post("/unirse", unirse);
+router.get("/:id_curso", obtenerUno);
+router.use("/:id_curso/clases", claseRoutes);
 
 module.exports = router;
