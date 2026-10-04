@@ -36,3 +36,26 @@ CREATE TABLE IF NOT EXISTS Clase (
   fecha DATE NOT NULL,
   FOREIGN KEY (id_curso) REFERENCES Curso(id_curso)
 );
+
+CREATE TABLE IF NOT EXISTS Codigo_QR (
+  id_qr INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_clase INTEGER NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  fecha_generacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  fecha_expiracion DATETIME NOT NULL,
+  usado BOOLEAN DEFAULT 0,
+  FOREIGN KEY (id_clase) REFERENCES Clase(id_clase)
+);
+
+CREATE TABLE IF NOT EXISTS Asistencia (
+  id_asistencia INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_clase INTEGER NOT NULL,
+  id_usuario INTEGER NOT NULL,
+  estado TEXT NOT NULL CHECK (estado IN ('presente', 'ausente', 'tarde', 'justificado')),
+  metodo TEXT NOT NULL CHECK (metodo IN ('qr', 'manual')),
+  fecha_hora_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  id_codigo_qr INTEGER,
+  FOREIGN KEY (id_clase) REFERENCES Clase(id_clase),
+  FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+  FOREIGN KEY (id_codigo_qr) REFERENCES Codigo_QR(id_qr)
+);

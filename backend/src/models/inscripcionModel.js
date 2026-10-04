@@ -31,6 +31,20 @@ const InscripcionModel = {
             .get(id_curso);
         return fila.total;
     },
+
+    listarAlumnos(id_curso) {
+        return db
+            .prepare(
+                `
+    SELECT Usuario.id_usuario, Usuario.nombre, Usuario.apellido
+    FROM Inscripcion
+    JOIN Usuario ON Usuario.id_usuario = Inscripcion.id_usuario
+    WHERE Inscripcion.id_curso = ? AND Inscripcion.rol_en_curso = 'alumno'
+    ORDER BY Usuario.apellido, Usuario.nombre
+  `,
+            )
+            .all(id_curso);
+    },
 };
 
 module.exports = InscripcionModel;

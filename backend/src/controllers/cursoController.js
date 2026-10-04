@@ -62,4 +62,18 @@ function obtenerUno(req, res) {
     });
 }
 
-module.exports = { crear, listarMisCursos, unirse, obtenerUno };
+function listarAlumnos(req, res) {
+    const { id_curso } = req.params;
+    const { id_usuario } = req.query;
+    if (!id_usuario) return res.status(400).json({ error: "id_usuario es obligatorio" });
+
+    const inscripcion = InscripcionModel.buscar(id_curso, id_usuario);
+    if (!inscripcion || inscripcion.rol_en_curso !== "profesor") {
+        return res.status(403).json({ error: "Solo un profesor del curso puede ver el listado de alumnos" });
+    }
+
+    const alumnos = InscripcionModel.listarAlumnos(id_curso);
+    res.json({ alumnos });
+}
+
+module.exports = { crear, listarMisCursos, unirse, obtenerUno, listarAlumnos };

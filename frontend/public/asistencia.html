@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es" data-tema="claro">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Asistencia — Organizador de asistencia</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="/css/tema.css" />
+    </head>
+    <body>
+        <nav
+            class="navbar border-bottom"
+            style="background-color: var(--bs-tertiary-bg); border-color: var(--bs-border-color)"
+        >
+            <div class="container">
+                <a href="/index.html" class="navbar-brand mb-0 h1 d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="logo-app" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0">OA</span>
+                    <span id="nombre-curso">Asistencia</span>
+                </a>
+                <a id="link-volver" href="/index.html" class="btn btn-sm btn-outline-secondary">← Volver al curso</a>
+            </div>
+        </nav>
+
+        <div class="container py-4">
+            <div id="alerta-asistencia" class="alert d-none" role="alert"></div>
+
+            <h1 class="h5 mb-1" id="titulo-clase">Clase</h1>
+            <p class="text-secondary-tema small mb-4" id="subtitulo-rol"></p>
+
+            <!-- ===== Vista PROFESOR ===== -->
+            <div id="vista-profesor" class="d-none">
+                <div class="row g-4">
+                    <div class="col-12 col-md-5">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h2 class="h6 mb-3">Código QR de la clase</h2>
+                                <!-- Fondo blanco fijo: el QR se lee mejor con contraste alto en cualquier tema -->
+                                <div
+                                    id="qr-contenedor"
+                                    class="mx-auto mb-2"
+                                    style="background: #fff; padding: 12px; border-radius: 10px; width: fit-content"
+                                ></div>
+                                <div class="small text-secondary-tema mb-2">
+                                    Se renueva en <span id="qr-contador">--</span> s
+                                </div>
+                                <details class="small text-secondary-tema">
+                                    <summary>Ver código (pruebas)</summary>
+                                    <code id="qr-token" class="d-block text-break mt-1"></code>
+                                </details>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-7">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h2 class="h6 mb-3">Carga manual</h2>
+                                <form id="form-manual" class="row g-2 align-items-end">
+                                    <div class="col-12 col-sm-6">
+                                        <label for="manual-alumno" class="form-label">Alumno</label>
+                                        <select id="manual-alumno" class="form-select" required></select>
+                                    </div>
+                                    <div class="col-8 col-sm-4">
+                                        <label for="manual-estado" class="form-label">Estado</label>
+                                        <select id="manual-estado" class="form-select">
+                                            <option value="presente">Presente</option>
+                                            <option value="tarde">Tarde</option>
+                                            <option value="ausente">Ausente</option>
+                                            <option value="justificado">Justificado</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-4 col-sm-2">
+                                        <button id="manual-guardar" type="submit" class="btn btn-primary w-100">
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h2 class="h6 mb-3">Asistencia registrada</h2>
+                                <div id="lista-asistencia" class="list-group"></div>
+                                <div id="sin-registros" class="text-center text-secondary-tema small py-3 d-none">
+                                    Todavía no hay asistencias registradas en esta clase.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Vista ALUMNO ===== -->
+            <div id="vista-alumno" class="d-none">
+                <div class="card mx-auto" style="max-width: 420px">
+                    <div class="card-body text-center">
+                        <h2 class="h6 mb-3">Registrar mi asistencia</h2>
+                        <div id="lector-qr" class="mx-auto mb-3" style="width: 100%; max-width: 320px"></div>
+                        <button id="btn-escanear" type="button" class="btn btn-primary w-100">Escanear código</button>
+
+                        <details class="small mt-3 text-start text-secondary-tema">
+                            <summary>Ingresar código a mano (pruebas)</summary>
+                            <div class="input-group input-group-sm mt-2">
+                                <input type="text" id="token-manual" class="form-control" placeholder="Código" />
+                                <button id="btn-token-manual" type="button" class="btn btn-outline-secondary">
+                                    Enviar
+                                </button>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+        <script src="/js/preferencias.js"></script>
+        <script src="/js/asistencia.js"></script>
+    </body>
+</html>
