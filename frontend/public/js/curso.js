@@ -75,10 +75,20 @@ function renderizarClases(clases) {
 
         const texto = document.createElement("span");
         texto.textContent = `Clase ${formatearFecha(clase.fecha)}`;
+
+        const derecha = document.createElement("span");
+        derecha.className = "d-flex align-items-center gap-2";
+        if (clase.estado === "abierta") {
+            const badge = document.createElement("span");
+            badge.className = "badge text-bg-success";
+            badge.textContent = "Abierta";
+            derecha.appendChild(badge);
+        }
         const flecha = document.createElement("span");
         flecha.textContent = "›";
+        derecha.appendChild(flecha);
 
-        item.append(texto, flecha);
+        item.append(texto, derecha);
         lista.appendChild(item);
     });
 }

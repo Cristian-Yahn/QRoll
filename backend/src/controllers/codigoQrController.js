@@ -3,6 +3,7 @@ const CodigoQrModel = require("../models/codigoQrModel");
 const ClaseModel = require("../models/claseModel");
 const InscripcionModel = require("../models/inscripcionModel");
 const { fechaSqliteEnSegundos } = require("../utils/fechas");
+const { sincronizarEstado } = require("../utils/estadoClase");
 
 const DURACION_QR_SEGUNDOS = 20;
 
@@ -19,9 +20,14 @@ function generar(req, res) {
         return res.status(403).json({ error: "Solo un profesor del curso puede generar el QR" });
     }
 
-    const clase = ClaseModel.buscarPorId(id_clase);
-    if (!clase || String(clase.id_curso) !== String(id_curso)) {
+    const claseOriginal = ClaseModel.buscarPorId(id_clase);
+    if (!claseOriginal || String(claseOriginal.id_curso) !== String(id_curso)) {
         return res.status(404).json({ error: "La clase no existe en este curso" });
+    }
+
+    const clase = sincronizarEstado(claseOriginal);
+    if (clase.estado !== "abierta") {
+        return res.status(400).json({ error: "La asistencia de esta clase está cerrada" });
     }
 
     const token = crypto.randomBytes(16).toString("hex");

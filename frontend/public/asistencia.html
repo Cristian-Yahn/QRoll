@@ -31,7 +31,20 @@
             <div id="vista-profesor" class="d-none">
                 <div class="row g-4">
                     <div class="col-12 col-md-5">
-                        <div class="card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span id="badge-estado-asistencia" class="badge text-bg-secondary">Cerrada</span>
+                            <button id="btn-abrir-asistencia" type="button" class="btn btn-sm btn-primary">
+                                Abrir asistencia
+                            </button>
+                            <button
+                                id="btn-cerrar-asistencia"
+                                type="button"
+                                class="btn btn-sm btn-outline-danger d-none"
+                            >
+                                Cerrar asistencia
+                            </button>
+                        </div>
+                        <div id="tarjeta-qr" class="card d-none">
                             <div class="card-body text-center">
                                 <h2 class="h6 mb-3">Código QR de la clase</h2>
                                 <!-- Fondo blanco fijo: el QR se lee mejor con contraste alto en cualquier tema -->

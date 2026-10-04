@@ -14,6 +14,18 @@ const ClaseModel = {
     listarPorCurso(id_curso) {
         return db.prepare("SELECT * FROM Clase WHERE id_curso = ? ORDER BY fecha DESC").all(id_curso);
     },
+
+    abrir(id_clase) {
+        db.prepare(`UPDATE Clase SET estado = 'abierta', fecha_apertura = CURRENT_TIMESTAMP WHERE id_clase = ?`).run(
+            id_clase,
+        );
+        return this.buscarPorId(id_clase);
+    },
+
+    cerrar(id_clase) {
+        db.prepare(`UPDATE Clase SET estado = 'cerrada' WHERE id_clase = ?`).run(id_clase);
+        return this.buscarPorId(id_clase);
+    },
 };
 
 module.exports = ClaseModel;

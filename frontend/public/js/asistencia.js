@@ -64,6 +64,7 @@ async function iniciar() {
         const resClases = await fetch(`/api/cursos/${idCurso}/clases?id_usuario=${usuario.id_usuario}`);
         const dataClases = await resClases.json();
         const clase = resClases.ok ? dataClases.clases.find(c => String(c.id_clase) === String(idClase)) : null;
+        claseActual = clase;
         if (!clase) {
             mostrarAlerta("La clase no existe en este curso", "danger");
             return;
@@ -105,6 +106,7 @@ let timerHistorial = null;
 let alumnos = [];
 let registrados = new Set();
 let claveSelectActual = "";
+let claseActual = null;
 
 function actualizarContador() {
     document.getElementById("qr-contador").textContent = cuentaRegresiva;
@@ -120,8 +122,14 @@ async function generarQr() {
         const data = await res.json();
 
         if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo generar el código QR", "danger");
             detenerRotacionQr();
+            if (res.status === 400) {
+                claseActual.estado = "cerrada";
+                actualizarUiEstado();
+                mostrarAlerta("La asistencia se cerró automáticamente (pasaron 3 horas desde la apertura)", "info");
+            } else {
+                mostrarAlerta(data.error || "No se pudo generar el código QR", "danger");
+            }
             return;
         }
 
@@ -263,18 +271,81 @@ async function cargarAlumnos() {
     }
 }
 
+function actualizarUiEstado() {
+    const abierta = claseActual.estado === "abierta";
+
+    const badge = document.getElementById("badge-estado-asistencia");
+    badge.textContent = abierta ? "Abierta" : "Cerrada";
+    badge.className = `badge ${abierta ? "text-bg-success" : "text-bg-secondary"}`;
+
+    document.getElementById("btn-abrir-asistencia").classList.toggle("d-none", abierta);
+    document.getElementById("btn-cerrar-asistencia").classList.toggle("d-none", !abierta);
+    document.getElementById("tarjeta-qr").classList.toggle("d-none", !abierta);
+}
+
+async function abrirAsistencia() {
+    limpiarAlerta();
+    try {
+        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/abrir`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_usuario: usuario.id_usuario }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            mostrarAlerta(data.error || "No se pudo abrir la asistencia", "danger");
+            return;
+        }
+
+        claseActual = data.clase;
+        actualizarUiEstado();
+        iniciarRotacionQr();
+    } catch (err) {
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    }
+}
+
+async function cerrarAsistencia() {
+    limpiarAlerta();
+    try {
+        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/cerrar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_usuario: usuario.id_usuario }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            mostrarAlerta(data.error || "No se pudo cerrar la asistencia", "danger");
+            return;
+        }
+
+        claseActual = data.clase;
+        actualizarUiEstado();
+        detenerRotacionQr();
+    } catch (err) {
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    }
+}
+
 async function iniciarVistaProfesor() {
-    iniciarRotacionQr();
+    actualizarUiEstado();
+    if (claseActual.estado === "abierta") {
+        iniciarRotacionQr();
+    }
+
+    document.getElementById("btn-abrir-asistencia").addEventListener("click", abrirAsistencia);
+    document.getElementById("btn-cerrar-asistencia").addEventListener("click", cerrarAsistencia);
 
     await cargarAlumnos();
     await cargarHistorial();
     timerHistorial = setInterval(cargarHistorial, 8000);
 
-    // Si el profesor cambia de pestaña, pausamos la generación de códigos
     document.addEventListener("visibilitychange", () => {
         if (document.hidden) {
             detenerRotacionQr();
-        } else {
+        } else if (claseActual.estado === "abierta") {
             iniciarRotacionQr();
             cargarHistorial();
         }

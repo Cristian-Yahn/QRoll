@@ -1,6 +1,8 @@
 const CodigoQrModel = require("../models/codigoQrModel");
 const AsistenciaModel = require("../models/asistenciaModel");
 const InscripcionModel = require("../models/inscripcionModel");
+const ClaseModel = require("../models/claseModel");
+const { sincronizarEstado } = require("../utils/estadoClase");
 
 function registrarPorQr(req, res) {
     const { id_curso, id_clase } = req.params;
@@ -13,6 +15,12 @@ function registrarPorQr(req, res) {
     const inscripcion = InscripcionModel.buscar(id_curso, id_usuario);
     if (!inscripcion) {
         return res.status(403).json({ error: "No pertenecés a este curso" });
+    }
+
+    const claseOriginal = ClaseModel.buscarPorId(id_clase);
+    const clase = claseOriginal ? sincronizarEstado(claseOriginal) : null;
+    if (!clase || clase.estado !== "abierta") {
+        return res.status(400).json({ error: "La asistencia de esta clase está cerrada" });
     }
 
     const codigoQr = CodigoQrModel.buscarValidoPorToken(token);

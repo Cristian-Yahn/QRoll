@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS Clase (
   id_clase INTEGER PRIMARY KEY AUTOINCREMENT,
   id_curso INTEGER NOT NULL,
   fecha DATE NOT NULL,
+  estado TEXT NOT NULL DEFAULT 'cerrada',
+  fecha_apertura DATETIME,
   FOREIGN KEY (id_curso) REFERENCES Curso(id_curso)
 );
 
