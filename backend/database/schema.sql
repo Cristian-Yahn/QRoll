@@ -39,6 +39,27 @@ CREATE TABLE IF NOT EXISTS Clase (
   FOREIGN KEY (id_curso) REFERENCES Curso(id_curso)
 );
 
+CREATE TABLE IF NOT EXISTS Publicacion (
+  id_publicacion INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_curso INTEGER NOT NULL,
+  id_usuario INTEGER NOT NULL,
+  contenido TEXT NOT NULL,
+  enlace TEXT,
+  fecha_publicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_curso) REFERENCES Curso(id_curso),
+  FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
+);
+
+CREATE TABLE IF NOT EXISTS Comentario (
+  id_comentario INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_publicacion INTEGER NOT NULL,
+  id_usuario INTEGER NOT NULL,
+  contenido TEXT NOT NULL,
+  fecha_comentario DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_publicacion) REFERENCES Publicacion(id_publicacion),
+  FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
+);
+
 CREATE TABLE IF NOT EXISTS Codigo_QR (
   id_qr INTEGER PRIMARY KEY AUTOINCREMENT,
   id_clase INTEGER NOT NULL,
