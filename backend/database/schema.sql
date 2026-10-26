@@ -82,3 +82,13 @@ CREATE TABLE IF NOT EXISTS Asistencia (
   FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
   FOREIGN KEY (id_codigo_qr) REFERENCES Codigo_QR(id_qr)
 );
+
+CREATE TABLE IF NOT EXISTS Bloqueo (
+  id_bloqueo INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_curso INTEGER NOT NULL,
+  id_usuario INTEGER NOT NULL,
+  fecha_bloqueo DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_curso) REFERENCES Curso(id_curso),
+  FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario),
+  UNIQUE (id_curso, id_usuario)
+);

@@ -1,60 +1,146 @@
+/* =====================================================================
+   QRoll — temas y estilos compartidos
+
+   Cada tema define sus colores como variables CSS sobre <html data-tema>.
+   Bootstrap 5.3 usa muchas de esas variables (--bs-*), así que sus
+   componentes heredan la paleta sin tener que pisar cada clase.
+   Las variables propias (sin "bs") son las que agregamos nosotros.
+   ===================================================================== */
+
+/* ---------- Paletas ---------- */
+
 :root[data-tema="claro"] {
-    --bs-body-bg: #f7f8fa;
-    --bs-body-color: #1a1a1a;
-    --bs-secondary-color: #5f6368;
-    --bs-border-color: #c7cad1;
+    --bs-body-bg: #e6edfb;
+    --bs-body-color: #1b2236;
+    --bs-emphasis-color: #0f1424;
+    --bs-secondary-color: #55607a;
+    --bs-border-color: #cdd6ea;
     --bs-tertiary-bg: #ffffff;
+    --bs-card-bg: #ffffff;
     --bs-primary: #2f6fed;
     --bs-primary-rgb: 47, 111, 237;
+    --bs-link-color-rgb: 47, 111, 237;
+    --bs-success: #1f8a4c;
+    --bs-success-rgb: 31, 138, 76;
+    --bs-danger: #c62828;
+    --bs-danger-rgb: 198, 40, 40;
+    --logo-bg: #2f6fed;
+    --superficie-2: #f1f5fd;
+    --texto-sobre-acento: #ffffff;
+    --rol-alumno: #0b8a7a;
+    --sombra-suave: rgba(47, 111, 237, 0.1);
+    --sombra-card: 0 8px 24px rgba(47, 111, 237, 0.12), 0 2px 6px rgba(27, 34, 54, 0.06);
+    --sombra-card-hover: 0 14px 32px rgba(47, 111, 237, 0.18), 0 4px 10px rgba(27, 34, 54, 0.08);
+}
+
+:root[data-tema="menta"] {
+    --bs-body-bg: #dcf1e6;
+    --bs-body-color: #14281f;
+    --bs-emphasis-color: #0a1a13;
+    --bs-secondary-color: #46604f;
+    --bs-border-color: #bcdccb;
+    --bs-tertiary-bg: #ffffff;
+    --bs-card-bg: #ffffff;
+    --bs-primary: #15855a;
+    --bs-primary-rgb: 21, 133, 90;
+    --bs-link-color-rgb: 21, 133, 90;
     --bs-success: #2e7d32;
     --bs-success-rgb: 46, 125, 50;
     --bs-danger: #c62828;
     --bs-danger-rgb: 198, 40, 40;
+    --logo-bg: #15855a;
+    --superficie-2: #eef8f2;
+    --texto-sobre-acento: #ffffff;
+    --rol-alumno: #c2570c;
+    --sombra-suave: rgba(21, 133, 90, 0.12);
+    --sombra-card: 0 8px 24px rgba(21, 133, 90, 0.14), 0 2px 6px rgba(20, 40, 31, 0.06);
+    --sombra-card-hover: 0 14px 32px rgba(21, 133, 90, 0.2), 0 4px 10px rgba(20, 40, 31, 0.08);
+}
+
+:root[data-tema="atardecer"] {
+    --bs-body-bg: #fbe6d4;
+    --bs-body-color: #2b1a10;
+    --bs-emphasis-color: #1a0e07;
+    --bs-secondary-color: #755540;
+    --bs-border-color: #efcfb3;
+    --bs-tertiary-bg: #ffffff;
     --bs-card-bg: #ffffff;
-    --logo-bg: #2f6fed;
+    --bs-primary: #d9480f;
+    --bs-primary-rgb: 217, 72, 15;
+    --bs-link-color-rgb: 217, 72, 15;
+    --bs-success: #2e7d32;
+    --bs-success-rgb: 46, 125, 50;
+    --bs-danger: #b71c1c;
+    --bs-danger-rgb: 183, 28, 28;
+    --logo-bg: #d9480f;
+    --superficie-2: #fff4ea;
+    --texto-sobre-acento: #ffffff;
+    --rol-alumno: #6d3fc0;
+    --sombra-suave: rgba(217, 72, 15, 0.12);
+    --sombra-card: 0 8px 24px rgba(217, 72, 15, 0.14), 0 2px 6px rgba(43, 26, 16, 0.06);
+    --sombra-card-hover: 0 14px 32px rgba(217, 72, 15, 0.2), 0 4px 10px rgba(43, 26, 16, 0.08);
 }
 
 :root[data-tema="medio"] {
     --bs-body-bg: #0d1b3d;
     --bs-body-color: #f1f3f8;
-    --bs-secondary-color: #8ca3d8;
-    --bs-border-color: #24356b;
-    --bs-tertiary-bg: #122452;
-    --bs-primary: #3d8bff;
-    --bs-primary-rgb: 61, 139, 255;
+    --bs-emphasis-color: #ffffff;
+    --bs-secondary-color: #a3b5e6;
+    --bs-border-color: #2a3f7a;
+    --bs-tertiary-bg: #16295c;
+    --bs-card-bg: #16295c;
+    --bs-primary: #5aa0ff;
+    --bs-primary-rgb: 90, 160, 255;
+    --bs-link-color-rgb: 90, 160, 255;
     --bs-success: #4cd97b;
     --bs-success-rgb: 76, 217, 123;
-    --bs-danger: #ff6b6b;
-    --bs-danger-rgb: 255, 107, 107;
-    --bs-card-bg: #122452;
-    --bs-emphasis-color: #f1f3f8;
-    --logo-bg: #3d8bff;
+    --bs-danger: #ff7b7b;
+    --bs-danger-rgb: 255, 123, 123;
+    --logo-bg: #5aa0ff;
+    --superficie-2: #1d3470;
+    --texto-sobre-acento: #0b1020;
+    --rol-alumno: #4fd1b5;
+    --sombra-suave: rgba(0, 0, 0, 0.35);
+    --sombra-card: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --sombra-card-hover: 0 16px 38px rgba(0, 0, 0, 0.5);
 }
 
 :root[data-tema="oscuro"] {
-    --bs-body-bg: #121417;
-    --bs-body-color: #f5f5f5;
-    --bs-secondary-color: #9aa0a6;
-    --bs-border-color: #2b2e33;
-    --bs-tertiary-bg: #1b1e22;
-    --bs-primary: #6c9bff;
-    --bs-primary-rgb: 108, 155, 255;
+    --bs-body-bg: #0f1115;
+    --bs-body-color: #eef0f3;
+    --bs-emphasis-color: #ffffff;
+    --bs-secondary-color: #9aa3b2;
+    --bs-border-color: #2d323b;
+    --bs-tertiary-bg: #1a1d23;
+    --bs-card-bg: #1a1d23;
+    --bs-primary: #7aa7ff;
+    --bs-primary-rgb: 122, 167, 255;
+    --bs-link-color-rgb: 122, 167, 255;
     --bs-success: #66bb6a;
     --bs-success-rgb: 102, 187, 106;
     --bs-danger: #e57373;
     --bs-danger-rgb: 229, 115, 115;
-    --bs-card-bg: #1b1e22;
-    --bs-emphasis-color: #f5f5f5;
-    --logo-bg: #6c9bff;
+    --logo-bg: #7aa7ff;
+    --superficie-2: #232830;
+    --texto-sobre-acento: #0b1020;
+    --rol-alumno: #f0b45a;
+    --sombra-suave: rgba(0, 0, 0, 0.45);
+    --sombra-card: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --sombra-card-hover: 0 16px 38px rgba(0, 0, 0, 0.6);
 }
 
+/* Le avisamos al navegador qué temas son oscuros (scrollbars, inputs nativos) */
 :root[data-tema="medio"],
 :root[data-tema="oscuro"] {
     color-scheme: dark;
 }
-:root[data-tema="claro"] {
+:root[data-tema="claro"],
+:root[data-tema="menta"],
+:root[data-tema="atardecer"] {
     color-scheme: light;
 }
+
+/* ---------- Base ---------- */
 
 body {
     background-color: var(--bs-body-bg);
@@ -64,20 +150,54 @@ body {
         color 0.15s ease;
 }
 
-.card {
-    background-color: var(--bs-card-bg);
-    border-color: var(--bs-border-color);
+/* Jerarquía de texto: títulos fuertes, texto secundario más apagado.
+   Ojo: se listan también las clases .h1-.h6 porque Bootstrap les pone
+   un peso propio que le gana a un selector de elemento solo. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bs-emphasis-color);
 }
 
-.form-control {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    border-width: 1.5px;
-    color: var(--bs-body-color);
+.text-secondary-tema {
+    color: var(--bs-secondary-color) !important;
 }
-.form-control:focus {
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
+
+.form-label {
+    font-weight: 600;
+}
+
+a {
+    font-weight: 500;
+}
+
+/* ---------- Navbar ---------- */
+
+.navbar.border-bottom {
+    border-bottom: 0 !important;
+}
+
+.navbar {
+    box-shadow: 0 2px 14px var(--sombra-suave);
+}
+
+/* El navbar de Bootstrap trae su propio color de texto fijo (no ligado
+   a nuestra paleta), hay que pisarlo a mano para que respete el tema */
+.navbar-brand,
+.navbar .nav-link {
+    color: var(--bs-body-color) !important;
+    font-weight: 700;
 }
 
 .logo-app {
@@ -88,16 +208,239 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
-    font-weight: 700;
+    color: var(--texto-sobre-acento);
+    font-weight: 800;
     font-size: 1.1rem;
     margin: 0 auto 1rem;
 }
 
-.navbar-brand,
-.navbar .nav-link {
-    color: var(--bs-body-color) !important;
+/* ---------- Tarjetas flotantes ---------- */
+
+.card {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 16px;
+    box-shadow: var(--sombra-card);
 }
+
+/* Listas sueltas (ej. "Tus cursos" en el inicio): cada ítem es una
+   tarjetita flotante que sube un poco al pasar el mouse */
+.list-group {
+    gap: 0.75rem;
+}
+
+.list-group-item {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    border: 0;
+    border-radius: 14px !important;
+    box-shadow: var(--sombra-card);
+    padding: 1rem 1.25rem;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.list-group-item-action:hover,
+.list-group-item-action:focus {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-card-hover);
+}
+
+/* Listas DENTRO de una tarjeta: planas, para no apilar sombra sobre sombra */
+.card .list-group {
+    gap: 0.5rem;
+}
+
+.card .list-group-item,
+.card .list-group-item + .list-group-item {
+    background-color: var(--superficie-2);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px !important;
+    box-shadow: none;
+    padding: 0.75rem 1rem;
+}
+
+.card .list-group-item-action:hover,
+.card .list-group-item-action:focus {
+    background-color: var(--superficie-2);
+    border-color: var(--bs-primary);
+    transform: none;
+    box-shadow: none;
+}
+
+/* ---------- Formularios ---------- */
+
+.form-control,
+.form-select {
+    background-color: var(--superficie-2);
+    border: 1.5px solid var(--bs-border-color);
+    border-radius: 0.6rem;
+    color: var(--bs-body-color);
+}
+
+.form-control::placeholder {
+    color: var(--bs-secondary-color);
+    opacity: 0.8;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--superficie-2);
+    color: var(--bs-body-color);
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+}
+
+/* Flechita clara del select en los temas oscuros */
+:root[data-tema="medio"] .form-select,
+:root[data-tema="oscuro"] .form-select {
+    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23F1F3F8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* ---------- Botones: que sigan el color de acento del tema ----------
+   Bootstrap fija los colores de .btn-primary al compilarse, por eso hay
+   que redefinir sus variables para que usen --bs-primary. */
+
+.btn {
+    border-radius: 0.6rem;
+    font-weight: 600;
+}
+
+.btn-primary {
+    --bs-btn-color: var(--texto-sobre-acento);
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-color: var(--texto-sobre-acento);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--bs-primary) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--bs-primary) 85%, black);
+    --bs-btn-active-color: var(--texto-sobre-acento);
+    --bs-btn-active-bg: color-mix(in srgb, var(--bs-primary) 75%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--bs-primary) 75%, black);
+    --bs-btn-disabled-color: var(--texto-sobre-acento);
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-color: var(--texto-sobre-acento);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-color: var(--texto-sobre-acento);
+    --bs-btn-active-bg: var(--bs-primary);
+    --bs-btn-active-border-color: var(--bs-primary);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--bs-border-color);
+    --bs-btn-hover-color: var(--bs-body-color);
+    --bs-btn-hover-bg: var(--superficie-2);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-color: var(--bs-body-color);
+    --bs-btn-active-bg: var(--superficie-2);
+    --bs-btn-active-border-color: var(--bs-primary);
+}
+
+/* Badges de Bootstrap: texto con buen contraste sobre cada color del tema */
+.text-bg-primary,
+.text-bg-success,
+.text-bg-danger {
+    color: var(--texto-sobre-acento) !important;
+}
+
+/* ---------- Rol y código de acceso (pantalla del curso) ---------- */
+
+.badge-rol {
+    display: inline-block;
+    padding: 0.35em 0.9em;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--texto-sobre-acento);
+}
+
+.badge-rol.profesor {
+    background: var(--bs-primary);
+}
+
+.badge-rol.alumno {
+    background: var(--rol-alumno);
+}
+
+/* Tarjeta principal del curso: una franja de color arriba según el rol */
+.tarjeta-curso {
+    border-top: 6px solid var(--bs-border-color);
+}
+
+.tarjeta-curso.rol-profesor {
+    border-top-color: var(--bs-primary);
+}
+
+.tarjeta-curso.rol-alumno {
+    border-top-color: var(--rol-alumno);
+}
+
+.titulo-curso {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 800;
+}
+
+.caja-codigo {
+    background: var(--superficie-2);
+    border: 2px dashed var(--bs-primary);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+
+.caja-codigo-etiqueta {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 0.4rem;
+}
+
+.caja-codigo-valor {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    padding-left: 0.25em; /* compensa el espacio que deja el letter-spacing al final */
+    color: var(--bs-primary);
+    line-height: 1;
+}
+
+/* ---------- Modales ---------- */
+
+.modal-content {
+    background-color: var(--bs-card-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 18px;
+    box-shadow: var(--sombra-card-hover);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--bs-border-color);
+}
+
+:root[data-tema="medio"] .btn-close,
+:root[data-tema="oscuro"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* ---------- Preferencias (botón flotante + modal) ---------- */
 
 .selector-tema .btn {
     --bs-btn-padding-y: 0.25rem;
@@ -105,7 +448,50 @@ body {
     --bs-btn-font-size: 0.78rem;
 }
 
-/* ===== Tamaño de fuente configurable ===== */
+.btn-preferencias {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bs-card-bg);
+    border: 1.5px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1040;
+    box-shadow: var(--sombra-card);
+}
+
+.btn-preferencias:hover {
+    border-color: var(--bs-primary);
+}
+
+/* Opción elegida en el modal de preferencias */
+#modal-preferencias .btn.active {
+    background: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: var(--texto-sobre-acento);
+}
+
+/* Circulito de color que acompaña a cada tema en el selector */
+.punto-tema {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    margin-right: 0.4rem;
+    vertical-align: -1px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Tamaño de fuente configurable =====
+   Al cambiar el font-size de la raíz, todo lo que esté en rem
+   (que es la mayoría de las medidas de Bootstrap) escala junto con esto. */
 :root[data-fuente="pequena"] {
     font-size: 14px;
 }
@@ -116,55 +502,44 @@ body {
     font-size: 18px;
 }
 
-/* Botón flotante de preferencias */
-.btn-preferencias {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--bs-tertiary-bg);
-    border: 1.5px solid var(--bs-border-color);
+/* ---------- Botones de peligro y pestañas ---------- */
+
+.btn-danger {
+    --bs-btn-color: var(--texto-sobre-acento);
+    --bs-btn-bg: var(--bs-danger);
+    --bs-btn-border-color: var(--bs-danger);
+    --bs-btn-hover-color: var(--texto-sobre-acento);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--bs-danger) 85%, black);
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--bs-danger) 85%, black);
+    --bs-btn-active-color: var(--texto-sobre-acento);
+    --bs-btn-active-bg: color-mix(in srgb, var(--bs-danger) 75%, black);
+    --bs-btn-active-border-color: color-mix(in srgb, var(--bs-danger) 75%, black);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--bs-danger);
+    --bs-btn-border-color: var(--bs-danger);
+    --bs-btn-hover-color: var(--texto-sobre-acento);
+    --bs-btn-hover-bg: var(--bs-danger);
+    --bs-btn-hover-border-color: var(--bs-danger);
+    --bs-btn-active-color: var(--texto-sobre-acento);
+    --bs-btn-active-bg: var(--bs-danger);
+    --bs-btn-active-border-color: var(--bs-danger);
+}
+
+/* Pestañas del curso (Clases / Tablón / Participantes) */
+.nav-pills .nav-link {
     color: var(--bs-body-color);
-    font-size: 1.3rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1040;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.5rem 1.1rem;
 }
 
-.btn-preferencias:hover {
-    border-color: var(--bs-primary);
+.nav-pills .nav-link:not(.active):hover {
+    background: var(--superficie-2);
 }
 
-#modal-preferencias .modal-content {
-    background-color: var(--bs-card-bg);
-    color: var(--bs-body-color);
-    border-color: var(--bs-border-color);
-}
-
-#modal-preferencias .modal-header,
-#modal-preferencias .modal-footer {
-    border-color: var(--bs-border-color);
-}
-
-.form-select {
-    background-color: var(--bs-body-bg);
-    border-color: var(--bs-border-color);
-    border-width: 1.5px;
-    color: var(--bs-body-color);
-}
-
-.form-select:focus {
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border-color: var(--bs-primary);
-}
-
-:root[data-tema="medio"] .form-select,
-:root[data-tema="oscuro"] .form-select {
-    --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23F1F3F8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+.nav-pills .nav-link.active {
+    background: var(--bs-primary);
+    color: var(--texto-sobre-acento);
 }

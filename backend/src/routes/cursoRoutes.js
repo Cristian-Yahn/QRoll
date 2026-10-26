@@ -1,6 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const { crear, listarMisCursos, unirse, obtenerUno, listarAlumnos } = require("../controllers/cursoController");
+const {
+    crear,
+    listarMisCursos,
+    unirse,
+    obtenerUno,
+    listarAlumnos,
+    regenerarCodigo,
+    listarParticipantes,
+    eliminarParticipante,
+    bloquearParticipante,
+    listarBloqueados,
+    desbloquearParticipante,
+} = require("../controllers/cursoController");
 const claseRoutes = require("./claseRoutes");
 const publicacionRoutes = require("./publicacionRoutes");
 
@@ -9,6 +21,12 @@ router.get("/", listarMisCursos);
 router.post("/unirse", unirse);
 router.get("/:id_curso", obtenerUno);
 router.get("/:id_curso/alumnos", listarAlumnos);
+router.post("/:id_curso/regenerar-codigo", regenerarCodigo);
+router.get("/:id_curso/participantes", listarParticipantes);
+router.delete("/:id_curso/participantes/:id_participante", eliminarParticipante);
+router.post("/:id_curso/participantes/:id_participante/bloquear", bloquearParticipante);
+router.get("/:id_curso/bloqueados", listarBloqueados);
+router.delete("/:id_curso/bloqueados/:id_participante", desbloquearParticipante);
 router.use("/:id_curso/clases", claseRoutes);
 router.use("/:id_curso/publicaciones", publicacionRoutes);
 

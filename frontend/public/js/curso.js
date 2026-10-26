@@ -24,6 +24,26 @@ function limpiarAlerta() {
     alerta.textContent = "";
 }
 
+// Hace el fetch, convierte la respuesta a JSON y devuelve { ok, data }.
+// Si no hay conexión con el servidor, devuelve ok: false con un mensaje de error,
+// así quien la llama solo tiene que mirar respuesta.ok. (Las funciones más
+// viejas de este archivo repiten este patrón a mano: pueden pasarse a esta
+// función como ejercicio.)
+async function llamarApi(url, metodo = "GET", cuerpo = null) {
+    try {
+        const opciones = { method: metodo };
+        if (cuerpo) {
+            opciones.headers = { "Content-Type": "application/json" };
+            opciones.body = JSON.stringify(cuerpo);
+        }
+        const res = await fetch(url, opciones);
+        const data = await res.json();
+        return { ok: res.ok, data };
+    } catch (err) {
+        return { ok: false, data: { error: "No se pudo conectar con el servidor" } };
+    }
+}
+
 /* =====================================================================
    Datos del curso
    ===================================================================== */
@@ -43,24 +63,239 @@ async function cargarCurso() {
         document.getElementById("nombre-curso").textContent = data.curso.nombre_curso;
         document.title = `${data.curso.nombre_curso} — QRoll`;
 
+        // La franja de color de la tarjeta y la etiqueta de rol dependen del rol
+        document.getElementById("tarjeta-curso").classList.add(esProfesor ? "rol-profesor" : "rol-alumno");
+
         const badgeRol = document.getElementById("badge-rol");
         badgeRol.textContent = esProfesor ? "Profesor" : "Alumno";
-        badgeRol.className = `badge ${esProfesor ? "text-bg-primary" : "text-bg-secondary"}`;
+        badgeRol.className = `badge-rol mb-2 ${esProfesor ? "profesor" : "alumno"}`;
 
-        document.getElementById("contador-alumnos").textContent = `${data.cantidad_alumnos} alumnos inscriptos`;
+        const cantidad = data.cantidad_alumnos;
+        document.getElementById("contador-alumnos").textContent =
+            `${cantidad} ${cantidad === 1 ? "alumno inscripto" : "alumnos inscriptos"}`;
 
         if (esProfesor) {
             document.getElementById("wrap-codigo").classList.remove("d-none");
             document.getElementById("codigo-acceso").textContent = data.curso.codigo_acceso;
             document.getElementById("btn-nueva-clase").classList.remove("d-none");
             document.getElementById("form-publicacion").classList.remove("d-none");
+            document.getElementById("card-bloqueados").classList.remove("d-none");
+            cargarBloqueados();
         }
 
         cargarClases();
         cargarPublicaciones();
+        cargarParticipantes();
     } catch (err) {
         mostrarAlerta("No se pudo conectar con el servidor", "danger");
     }
+}
+
+// Botón "Copiar" del código de acceso
+const btnCopiar = document.getElementById("btn-copiar-codigo");
+btnCopiar.addEventListener("click", async () => {
+    const codigo = document.getElementById("codigo-acceso").textContent;
+
+    try {
+        await navigator.clipboard.writeText(codigo);
+        btnCopiar.textContent = "¡Copiado!";
+        setTimeout(() => {
+            btnCopiar.textContent = "Copiar";
+        }, 1500);
+    } catch (err) {
+        mostrarAlerta("No se pudo copiar el código. Copialo a mano.", "warning");
+    }
+});
+
+// Botón "Regenerar" del código de acceso
+document.getElementById("btn-regenerar-codigo").addEventListener("click", async () => {
+    const confirmado = await confirmar({
+        titulo: "Regenerar código de acceso",
+        mensaje:
+            "El código actual dejará de funcionar. Quienes ya están en el curso siguen adentro, pero nadie podrá unirse con el código viejo.",
+        textoConfirmar: "Regenerar",
+    });
+    if (!confirmado) return;
+
+    limpiarAlerta();
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/regenerar-codigo`, "POST", {
+        id_usuario: usuario.id_usuario,
+    });
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo regenerar el código", "danger");
+        return;
+    }
+
+    document.getElementById("codigo-acceso").textContent = respuesta.data.codigo_acceso;
+    mostrarAlerta("Código regenerado. El anterior ya no sirve para unirse.", "success");
+});
+
+/* =====================================================================
+   Participantes: lista, eliminar, bloquear y desbloquear
+   ===================================================================== */
+
+function crearFilaParticipante(p) {
+    const item = document.createElement("div");
+    item.className = "list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap";
+
+    const info = document.createElement("div");
+    const nombre = document.createElement("div");
+    nombre.className = "fw-semibold";
+    nombre.textContent = `${p.nombre} ${p.apellido}${p.id_usuario === usuario.id_usuario ? " (vos)" : ""}`;
+    info.appendChild(nombre);
+
+    // El servidor solo manda el email cuando quien pregunta es profesor
+    if (p.email) {
+        const email = document.createElement("div");
+        email.className = "small text-secondary-tema";
+        email.textContent = p.email;
+        info.appendChild(email);
+    }
+
+    const derecha = document.createElement("div");
+    derecha.className = "d-flex align-items-center gap-2";
+
+    const rol = document.createElement("span");
+    rol.className = `badge ${p.rol_en_curso === "profesor" ? "text-bg-primary" : "text-bg-secondary"}`;
+    rol.textContent = p.rol_en_curso === "profesor" ? "Profesor" : "Alumno";
+    derecha.appendChild(rol);
+
+    if (esProfesor && p.rol_en_curso === "alumno") {
+        const btnEliminar = document.createElement("button");
+        btnEliminar.type = "button";
+        btnEliminar.className = "btn btn-sm btn-outline-secondary";
+        btnEliminar.textContent = "Eliminar";
+        btnEliminar.addEventListener("click", () => eliminarAlumno(p));
+
+        const btnBloquear = document.createElement("button");
+        btnBloquear.type = "button";
+        btnBloquear.className = "btn btn-sm btn-outline-danger";
+        btnBloquear.textContent = "Bloquear";
+        btnBloquear.addEventListener("click", () => bloquearAlumno(p));
+
+        derecha.append(btnEliminar, btnBloquear);
+    }
+
+    item.append(info, derecha);
+    return item;
+}
+
+async function cargarParticipantes() {
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes?id_usuario=${usuario.id_usuario}`);
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudieron cargar los participantes", "danger");
+        return;
+    }
+
+    const participantes = respuesta.data.participantes;
+    const lista = document.getElementById("lista-participantes");
+    lista.innerHTML = "";
+    participantes.forEach(p => lista.appendChild(crearFilaParticipante(p)));
+
+    const hayAlumnos = participantes.some(p => p.rol_en_curso === "alumno");
+    document.getElementById("sin-alumnos").classList.toggle("d-none", hayAlumnos);
+}
+
+async function eliminarAlumno(p) {
+    const confirmado = await confirmar({
+        titulo: "Eliminar alumno",
+        mensaje: `¿Querés sacar a ${p.nombre} ${p.apellido} de este curso? Podrá volver a unirse con el código de acceso.`,
+        textoConfirmar: "Eliminar",
+        peligro: true,
+    });
+    if (!confirmado) return;
+
+    limpiarAlerta();
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}`, "DELETE", {
+        id_usuario: usuario.id_usuario,
+    });
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo eliminar al alumno", "danger");
+        return;
+    }
+
+    mostrarAlerta(`${p.nombre} ${p.apellido} fue eliminado del curso`, "success");
+    cargarCurso();
+}
+
+async function bloquearAlumno(p) {
+    const confirmado = await confirmar({
+        titulo: "Bloquear alumno",
+        mensaje: `${p.nombre} ${p.apellido} sale del curso y no podrá volver a unirse, aunque cambies el código de acceso. Podés desbloquearlo más tarde.`,
+        textoConfirmar: "Bloquear",
+        peligro: true,
+    });
+    if (!confirmado) return;
+
+    limpiarAlerta();
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}/bloquear`, "POST", {
+        id_usuario: usuario.id_usuario,
+    });
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo bloquear al alumno", "danger");
+        return;
+    }
+
+    mostrarAlerta(`${p.nombre} ${p.apellido} fue bloqueado`, "success");
+    cargarCurso();
+}
+
+function crearFilaBloqueado(b) {
+    const item = document.createElement("div");
+    item.className = "list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap";
+
+    const info = document.createElement("div");
+    const nombre = document.createElement("div");
+    nombre.className = "fw-semibold";
+    nombre.textContent = `${b.nombre} ${b.apellido}`;
+    const email = document.createElement("div");
+    email.className = "small text-secondary-tema";
+    email.textContent = b.email;
+    info.append(nombre, email);
+
+    const btnDesbloquear = document.createElement("button");
+    btnDesbloquear.type = "button";
+    btnDesbloquear.className = "btn btn-sm btn-outline-primary";
+    btnDesbloquear.textContent = "Desbloquear";
+    btnDesbloquear.addEventListener("click", () => desbloquearAlumno(b));
+
+    item.append(info, btnDesbloquear);
+    return item;
+}
+
+async function cargarBloqueados() {
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados?id_usuario=${usuario.id_usuario}`);
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudieron cargar los bloqueados", "danger");
+        return;
+    }
+
+    const bloqueados = respuesta.data.bloqueados;
+    const lista = document.getElementById("lista-bloqueados");
+    lista.innerHTML = "";
+    bloqueados.forEach(b => lista.appendChild(crearFilaBloqueado(b)));
+
+    document.getElementById("sin-bloqueados").classList.toggle("d-none", bloqueados.length > 0);
+}
+
+async function desbloquearAlumno(b) {
+    limpiarAlerta();
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados/${b.id_usuario}`, "DELETE", {
+        id_usuario: usuario.id_usuario,
+    });
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo desbloquear al alumno", "danger");
+        return;
+    }
+
+    mostrarAlerta(`${b.nombre} ${b.apellido} fue desbloqueado y puede volver a unirse`, "success");
+    cargarBloqueados();
 }
 
 /* =====================================================================

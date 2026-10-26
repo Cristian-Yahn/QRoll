@@ -4,11 +4,16 @@
 // (CSS y JS) y /css/tema.css antes de este script.
 
 (function () {
+    // "color" es solo para el circulito del selector (el color de acento del tema)
     const TEMAS = [
-        { valor: "claro", etiqueta: "Claro" },
-        { valor: "medio", etiqueta: "Medio" },
-        { valor: "oscuro", etiqueta: "Oscuro" },
+        { valor: "claro", etiqueta: "Claro", color: "#2f6fed" },
+        { valor: "menta", etiqueta: "Menta", color: "#15855a" },
+        { valor: "atardecer", etiqueta: "Atardecer", color: "#d9480f" },
+        { valor: "medio", etiqueta: "Medio", color: "#0d1b3d" },
+        { valor: "oscuro", etiqueta: "Oscuro", color: "#0f1115" },
     ];
+
+    const TEMAS_VALIDOS = TEMAS.map(t => t.valor);
 
     const TAMANOS_FUENTE = [
         { valor: "pequena", etiqueta: "Pequeña" },
@@ -24,13 +29,19 @@
           type="button"
           class="btn btn-outline-secondary ${op.valor === valorActual ? "active" : ""}"
           data-${dataAttr}="${op.valor}"
-        >${op.etiqueta}</button>`,
+        >${op.color ? `<span class="punto-tema" style="background:${op.color}"></span>` : ""}${op.etiqueta}</button>`,
             )
             .join("");
     }
 
+    // Si en localStorage quedó guardado un tema que ya no existe, vuelve al claro
+    function leerTemaGuardado() {
+        const guardado = localStorage.getItem("tema");
+        return TEMAS_VALIDOS.includes(guardado) ? guardado : "claro";
+    }
+
     function montarPreferencias() {
-        const temaActual = localStorage.getItem("tema") || "claro";
+        const temaActual = leerTemaGuardado();
         const fuenteActual = localStorage.getItem("fuente") || "mediana";
 
         // Botón flotante
@@ -54,7 +65,7 @@
             </div>
             <div class="modal-body">
               <label class="form-label d-block mb-2">Tema</label>
-              <div class="btn-group mb-4" role="group" id="pref-grupo-tema">
+              <div class="d-flex flex-wrap gap-2 mb-4" role="group" id="pref-grupo-tema">
                 ${crearGrupoBotones(TEMAS, temaActual, "tema-valor")}
               </div>
 
@@ -94,7 +105,7 @@
 
     // Restaurar preferencias guardadas apenas carga la página (antes de pintar
     // el modal, para que la web ya se vea con el tema/fuente correctos)
-    document.documentElement.setAttribute("data-tema", localStorage.getItem("tema") || "claro");
+    document.documentElement.setAttribute("data-tema", leerTemaGuardado());
     document.documentElement.setAttribute("data-fuente", localStorage.getItem("fuente") || "mediana");
 
     document.addEventListener("DOMContentLoaded", montarPreferencias);

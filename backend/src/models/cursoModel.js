@@ -7,7 +7,8 @@ function generarCodigoAcceso() {
 }
 
 const CursoModel = {
-    crear({ nombre_curso, id_creador }) {
+    // Genera un código y se asegura de que no lo tenga ya otro curso
+    generarCodigoUnico() {
         let codigo_acceso;
         let intentos = 0;
 
@@ -15,6 +16,12 @@ const CursoModel = {
             codigo_acceso = generarCodigoAcceso();
             intentos++;
         } while (this.buscarPorCodigoAcceso(codigo_acceso) && intentos < 5);
+
+        return codigo_acceso;
+    },
+
+    crear({ nombre_curso, id_creador }) {
+        const codigo_acceso = this.generarCodigoUnico();
 
         const stmt = db.prepare(`
       INSERT INTO Curso (nombre_curso, id_creador, codigo_acceso)
@@ -44,6 +51,12 @@ const CursoModel = {
     `,
             )
             .all(id_usuario);
+    },
+
+    regenerarCodigo(id_curso) {
+        const codigo_acceso = this.generarCodigoUnico();
+        db.prepare("UPDATE Curso SET codigo_acceso = ? WHERE id_curso = ?").run(codigo_acceso, id_curso);
+        return this.buscarPorId(id_curso);
     },
 };
 
