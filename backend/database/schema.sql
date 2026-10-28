@@ -8,7 +8,10 @@ CREATE TABLE IF NOT EXISTS Usuario (
   fecha_ultimo_intento_fallido DATETIME,
   activo BOOLEAN DEFAULT 1,
   token_seguridad TEXT,
-  token_seguridad_expiracion DATETIME
+  token_seguridad_expiracion DATETIME,
+  token_seguridad_tipo TEXT,              -- 'verificacion' | 'restablecer' (validado en el controlador)
+  estado_cuenta TEXT NOT NULL DEFAULT 'normal',   -- 'normal' | 'verificacion' | 'bloqueada'
+  sesiones_validas_desde DATETIME         -- las sesiones iniciadas antes de esta fecha ya no valen
 );
 
 CREATE TABLE IF NOT EXISTS Curso (

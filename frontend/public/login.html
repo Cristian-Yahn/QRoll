@@ -97,6 +97,27 @@
                                 </form>
                             </div>
                         </div>
+
+                        <!-- Recuperar contraseña: reemplaza a las pestañas al tocar "¿Olvidaste tu contraseña?" -->
+                        <div id="vista-recuperar" class="d-none">
+                            <h2 class="h6 mb-2">Recuperar contraseña</h2>
+                            <p class="small text-secondary-tema">
+                                Ingresá tu email y, si está registrado, te enviamos un enlace para elegir una
+                                contraseña nueva.
+                            </p>
+                            <form id="form-recuperar" novalidate>
+                                <div class="mb-3">
+                                    <label for="recuperar-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="recuperar-email" required />
+                                </div>
+                                <button type="submit" id="recuperar-enviar" class="btn btn-primary w-100 mb-2">
+                                    Enviar enlace
+                                </button>
+                                <button type="button" id="recuperar-volver" class="btn btn-outline-secondary w-100">
+                                    ← Volver a iniciar sesión
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,6 +125,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/preferencias.js"></script>
+        <script src="/js/ver-contrasena.js"></script>
         <script src="/js/login.js"></script>
     </body>
 </html>

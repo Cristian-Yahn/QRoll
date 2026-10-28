@@ -121,9 +121,14 @@ document.getElementById("form-unirse-curso").addEventListener("submit", async e 
     }
 });
 
-document.getElementById("btn-salir").addEventListener("click", () => {
-    localStorage.removeItem("usuario");
-    window.location.href = "/login.html";
+document.getElementById("btn-salir").addEventListener("click", async () => {
+    const confirmado = await confirmar({
+        titulo: "Cerrar sesión",
+        mensaje: "¿Querés cerrar tu sesión?",
+        textoConfirmar: "Cerrar sesión",
+    });
+    if (!confirmado) return;
+    cerrarSesion();
 });
 
 cargarCursos();

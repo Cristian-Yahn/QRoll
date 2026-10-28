@@ -106,6 +106,8 @@ let timerHistorial = null;
 let alumnos = [];
 let registrados = new Set();
 let claveSelectActual = "";
+let editandoId = null; // id_asistencia del registro que se está corrigiendo en la lista (null = ninguno)
+let ultimosRegistros = []; // el último historial recibido, para volver a dibujarlo sin pedirlo de nuevo
 let claseActual = null;
 
 function actualizarContador() {
@@ -133,18 +135,22 @@ async function generarQr() {
             return;
         }
 
-        document.getElementById("qr-token").textContent = data.token;
+        // El QR ya no lleva solo el token: lleva un ENLACE. Así el alumno puede usar la
+        // cámara del celular (sin abrir nada antes), tocar el aviso y la asistencia se
+        // registra sola. Cada 15 s cambia el token, y por lo tanto el enlace.
+        const enlace = `${window.location.origin}/asistencia-rapida.html?t=${data.token}`;
+        document.getElementById("qr-token").textContent = enlace;
 
         const contenedor = document.getElementById("qr-contenedor");
         if (!qrObj) {
             qrObj = new QRCode(contenedor, {
-                text: data.token,
+                text: enlace,
                 width: 220,
                 height: 220,
                 correctLevel: QRCode.CorrectLevel.M,
             });
         } else {
-            qrObj.makeCode(data.token);
+            qrObj.makeCode(enlace);
         }
 
         cuentaRegresiva = INTERVALO_QR_SEG;
@@ -152,6 +158,20 @@ async function generarQr() {
     } catch (err) {
         mostrarAlerta("No se pudo conectar con el servidor", "danger");
     }
+}
+
+// Si el profesor abrió QRoll desde "localhost", el enlace del QR apuntaría a
+// localhost, que en el celular del alumno es el propio celular: no abre nada.
+function mostrarAvisoLocalhost() {
+    const host = window.location.hostname;
+    if (host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]") return;
+
+    const aviso = document.createElement("div");
+    aviso.className = "alert alert-warning small text-start";
+    aviso.textContent =
+        "Estás usando localhost: los celulares no van a poder abrir este QR. " +
+        "Abrí QRoll con la IP de tu PC (por ejemplo http://192.168.0.10:3000) o con un túnel HTTPS.";
+    document.querySelector("#tarjeta-qr .card-body").prepend(aviso);
 }
 
 function iniciarRotacionQr() {
@@ -209,6 +229,38 @@ function actualizarSelectAlumnos() {
     }
 }
 
+// Controles que reemplazan al estado mientras el profesor corrige un registro:
+// un desplegable con los estados y los botones Guardar / Cancelar
+function crearControlesEdicion(registro) {
+    const select = document.createElement("select");
+    select.className = "form-select form-select-sm w-auto";
+    select.setAttribute("aria-label", `Estado de ${registro.nombre} ${registro.apellido}`);
+    Object.entries(ETIQUETA_ESTADO).forEach(([valor, texto]) => {
+        const opcion = document.createElement("option");
+        opcion.value = valor;
+        opcion.textContent = texto;
+        select.appendChild(opcion);
+    });
+    select.value = registro.estado;
+
+    const guardar = document.createElement("button");
+    guardar.type = "button";
+    guardar.className = "btn btn-sm btn-primary";
+    guardar.textContent = "Guardar";
+    guardar.addEventListener("click", () => guardarEdicion(registro, select.value, guardar));
+
+    const cancelar = document.createElement("button");
+    cancelar.type = "button";
+    cancelar.className = "btn btn-sm btn-outline-secondary";
+    cancelar.textContent = "Cancelar";
+    cancelar.addEventListener("click", () => {
+        editandoId = null;
+        renderizarHistorial(ultimosRegistros);
+    });
+
+    return [select, guardar, cancelar];
+}
+
 function renderizarHistorial(registros) {
     const lista = document.getElementById("lista-asistencia");
     const vacio = document.getElementById("sin-registros");
@@ -222,27 +274,79 @@ function renderizarHistorial(registros) {
 
     registros.forEach(r => {
         const item = document.createElement("div");
-        item.className = "list-group-item d-flex justify-content-between align-items-center";
+        item.className = "list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2";
         estilizarItemLista(item);
 
         const nombre = document.createElement("span");
         nombre.textContent = `${r.nombre} ${r.apellido}`;
 
         const derecha = document.createElement("span");
-        derecha.className = "d-flex align-items-center gap-2 small";
+        derecha.className = "d-flex flex-wrap justify-content-end align-items-center gap-2 small";
 
         const meta = document.createElement("span");
         meta.className = "text-secondary-tema";
         meta.textContent = `${r.metodo === "qr" ? "QR" : "Manual"} · ${formatearHora(r.fecha_hora_registro)}`;
+        derecha.appendChild(meta);
 
-        const badge = document.createElement("span");
-        badge.className = `badge ${CLASE_ESTADO[r.estado] || "text-bg-secondary"}`;
-        badge.textContent = ETIQUETA_ESTADO[r.estado] || r.estado;
+        if (r.id_asistencia === editandoId) {
+            derecha.append(...crearControlesEdicion(r));
+        } else {
+            const badge = document.createElement("span");
+            badge.className = `badge ${CLASE_ESTADO[r.estado] || "text-bg-secondary"}`;
+            badge.textContent = ETIQUETA_ESTADO[r.estado] || r.estado;
 
-        derecha.append(meta, badge);
+            const editar = document.createElement("button");
+            editar.type = "button";
+            editar.className = "btn btn-sm btn-outline-secondary py-0";
+            editar.textContent = "Editar";
+            editar.setAttribute("aria-label", `Editar la asistencia de ${r.nombre} ${r.apellido}`);
+            editar.addEventListener("click", () => {
+                limpiarAlerta();
+                editandoId = r.id_asistencia;
+                renderizarHistorial(ultimosRegistros);
+            });
+
+            derecha.append(badge, editar);
+        }
+
         item.append(nombre, derecha);
         lista.appendChild(item);
     });
+}
+
+// Manda la corrección al servidor. Se puede hacer aunque la asistencia ya esté cerrada.
+async function guardarEdicion(registro, estado, boton) {
+    limpiarAlerta();
+
+    // Si no cambió nada, no hace falta molestar al servidor
+    if (estado === registro.estado) {
+        editandoId = null;
+        renderizarHistorial(ultimosRegistros);
+        return;
+    }
+
+    boton.disabled = true;
+    try {
+        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/${registro.id_asistencia}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ estado }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            mostrarAlerta(data.error || "No se pudo actualizar la asistencia", "danger");
+            boton.disabled = false;
+            return;
+        }
+
+        mostrarAlerta(`Asistencia de ${registro.nombre} ${registro.apellido} actualizada`, "success");
+        editandoId = null;
+        await cargarHistorial();
+    } catch (err) {
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+        boton.disabled = false;
+    }
 }
 
 async function cargarHistorial() {
@@ -252,7 +356,13 @@ async function cargarHistorial() {
         if (!res.ok) return;
 
         registrados = new Set(data.registros.map(r => r.id_usuario));
-        renderizarHistorial(data.registros);
+        ultimosRegistros = data.registros;
+        // Esta función se ejecuta sola cada 8 segundos: si en ese momento el profesor está
+        // eligiendo un estado, redibujar la lista le cerraría el desplegable. Se guardan los
+        // datos nuevos pero se redibuja recién cuando termina de editar.
+        if (editandoId === null) {
+            renderizarHistorial(data.registros);
+        }
         actualizarSelectAlumnos();
     } catch (err) {
         // Si falla un refresco automático no molestamos con una alerta; se reintenta solo
@@ -307,6 +417,14 @@ async function abrirAsistencia() {
 }
 
 async function cerrarAsistencia() {
+    const confirmado = await confirmar({
+        titulo: "Cerrar asistencia",
+        mensaje:
+            "Los alumnos ya no van a poder registrarse con el QR. Si hace falta, podés volver a abrir la asistencia más tarde.",
+        textoConfirmar: "Cerrar asistencia",
+    });
+    if (!confirmado) return;
+
     limpiarAlerta();
     try {
         const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/cerrar`, {
@@ -330,6 +448,7 @@ async function cerrarAsistencia() {
 }
 
 async function iniciarVistaProfesor() {
+    mostrarAvisoLocalhost();
     actualizarUiEstado();
     if (claseActual.estado === "abierta") {
         iniciarRotacionQr();
@@ -424,11 +543,22 @@ async function detenerEscaneo() {
     boton.textContent = "Escanear código";
 }
 
+// Lo leído puede ser un enlace (QR nuevo: ".../asistencia-rapida.html?t=TOKEN")
+// o un token solo (código tipeado a mano, o QR viejo). Devuelve siempre el token.
+function extraerToken(texto) {
+    const limpio = texto.trim();
+    try {
+        return new URL(limpio).searchParams.get("t") || limpio;
+    } catch (err) {
+        return limpio; // no era una URL: ya es el token
+    }
+}
+
 async function alLeerCodigo(texto) {
     if (procesando) return;
     procesando = true;
     await detenerEscaneo();
-    await enviarToken(texto.trim());
+    await enviarToken(extraerToken(texto));
     procesando = false;
 }
 
@@ -469,7 +599,7 @@ function iniciarVistaAlumno() {
     });
 
     document.getElementById("btn-token-manual").addEventListener("click", () => {
-        const token = document.getElementById("token-manual").value.trim();
+        const token = extraerToken(document.getElementById("token-manual").value);
         if (!token) return;
         enviarToken(token);
     });

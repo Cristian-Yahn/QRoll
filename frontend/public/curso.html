@@ -98,6 +98,20 @@
                         Participantes
                     </button>
                 </li>
+                <li class="nav-item d-none" role="presentation" id="item-tab-seguimiento">
+                    <button
+                        class="nav-link"
+                        id="tab-seguimiento"
+                        data-bs-toggle="pill"
+                        data-bs-target="#panel-seguimiento"
+                        type="button"
+                        role="tab"
+                        aria-controls="panel-seguimiento"
+                        aria-selected="false"
+                    >
+                        Seguimiento
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content">
@@ -109,6 +123,54 @@
                     aria-labelledby="tab-clases"
                     tabindex="0"
                 >
+                    <!-- Resumen de asistencia (solo lo ve el alumno) -->
+                    <div id="card-mi-asistencia" class="card mb-4 d-none">
+                        <div class="card-body p-4">
+                            <h2 class="h5 mb-3">Mi asistencia</h2>
+
+                            <div id="asist-vacio" class="text-secondary-tema small d-none">
+                                Todavía no se tomó asistencia en ninguna clase de este curso.
+                            </div>
+
+                            <div id="asist-contenido">
+                                <div class="d-flex flex-wrap align-items-end gap-4 mb-3">
+                                    <div>
+                                        <div class="cifra-asistencia">
+                                            <span id="asist-asistidas">0</span
+                                            ><span class="cifra-asistencia-total">
+                                                / <span id="asist-totales">0</span></span
+                                            >
+                                        </div>
+                                        <div class="text-secondary-tema small">clases asistidas</div>
+                                    </div>
+                                    <div>
+                                        <div class="cifra-asistencia" id="asist-porcentaje">0%</div>
+                                        <div class="text-secondary-tema small">de asistencia</div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="progress mb-3"
+                                    id="asist-progreso"
+                                    role="progressbar"
+                                    aria-label="Porcentaje de asistencia"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    aria-valuenow="0"
+                                >
+                                    <div class="progress-bar" id="asist-barra" style="width: 0%"></div>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-2 small">
+                                    <span class="badge text-bg-success">Presentes: <span id="asist-presentes">0</span></span>
+                                    <span class="badge text-bg-warning">Tardes: <span id="asist-tardes">0</span></span>
+                                    <span class="badge text-bg-info">Justificadas: <span id="asist-justificadas">0</span></span>
+                                    <span class="badge text-bg-danger">Ausentes: <span id="asist-ausentes">0</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -197,6 +259,60 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== Panel: Seguimiento (solo profesor) ===== -->
+                <div
+                    class="tab-pane fade"
+                    id="panel-seguimiento"
+                    role="tabpanel"
+                    aria-labelledby="tab-seguimiento"
+                    tabindex="0"
+                >
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div>
+                                    <h2 class="h5 mb-0">Seguimiento de asistencia</h2>
+                                    <div class="text-secondary-tema small">
+                                        <span id="seg-clases-tomadas">0 clases tomadas</span>
+                                    </div>
+                                </div>
+                                <a id="btn-exportar" class="btn btn-sm btn-primary" href="#">Exportar a Excel</a>
+                            </div>
+
+                            <div id="seg-sin-alumnos" class="text-center text-secondary-tema small py-3 d-none">
+                                Todavía no se unió ningún alumno a este curso.
+                            </div>
+
+                            <div id="seg-tabla" class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr id="seguimiento-encabezado">
+                                            <th scope="col" aria-sort="ascending">
+                                                <button type="button" class="btn-orden activo" data-orden="apellido">
+                                                    Alumno <span class="flecha-orden">▲</span>
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-center" aria-sort="none">
+                                                <button type="button" class="btn-orden" data-orden="asistidas">
+                                                    Asistidas <span class="flecha-orden"></span>
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-center" aria-sort="none">
+                                                <button type="button" class="btn-orden" data-orden="porcentaje">
+                                                    % asistencia <span class="flecha-orden"></span>
+                                                </button>
+                                            </th>
+                                            <th scope="col" class="text-center">Justificadas</th>
+                                            <th scope="col" class="text-center">Ausentes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cuerpo-seguimiento"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -223,6 +339,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/confirmar.js"></script>
+        <script src="/js/sesion.js"></script>
         <script src="/js/preferencias.js"></script>
         <script src="/js/curso.js"></script>
     </body>

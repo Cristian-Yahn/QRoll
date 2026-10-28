@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" data-tema="claro">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Nueva contraseña — QRoll</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="/css/tema.css" />
+    </head>
+    <body>
+        <nav
+            class="navbar border-bottom"
+            style="background-color: var(--bs-tertiary-bg); border-color: var(--bs-border-color)"
+        >
+            <div class="container">
+                <a href="/login.html" class="navbar-brand mb-0 h1 d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="logo-app" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0">QR</span>
+                    QRoll
+                </a>
+            </div>
+        </nav>
+
+        <div class="container py-5">
+            <div class="card mx-auto" style="max-width: 420px">
+                <div class="card-body p-4">
+                    <h1 class="h5 mb-2">Elegí una contraseña nueva</h1>
+                    <p class="small text-secondary-tema mb-3">
+                        Después de cambiarla vas a tener que iniciar sesión de nuevo en todos tus dispositivos.
+                    </p>
+
+                    <div id="alerta" class="alert d-none" role="alert"></div>
+
+                    <form id="form-restablecer" novalidate>
+                        <div class="mb-3">
+                            <label for="contrasena-nueva" class="form-label">Contraseña nueva</label>
+                            <input
+                                type="password"
+                                class="form-control"
+                                id="contrasena-nueva"
+                                autocomplete="new-password"
+                                required
+                            />
+                            <div class="form-text">
+                                Mínimo 8 caracteres: 1 mayúscula, 1 minúscula, 1 número y 1 carácter especial.
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contrasena-repetir" class="form-label">Repetí la contraseña</label>
+                            <input
+                                type="password"
+                                class="form-control"
+                                id="contrasena-repetir"
+                                autocomplete="new-password"
+                                required
+                            />
+                        </div>
+                        <button type="submit" id="btn-guardar" class="btn btn-primary w-100">Cambiar contraseña</button>
+                    </form>
+
+                    <!-- Se muestra solo si el enlace no sirve -->
+                    <div id="bloque-enlace-invalido" class="d-none">
+                        <a href="/login.html?recuperar=1" class="btn btn-primary w-100">Pedir un enlace nuevo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/js/preferencias.js"></script>
+        <script src="/js/ver-contrasena.js"></script>
+        <script src="/js/restablecer.js"></script>
+    </body>
+</html>

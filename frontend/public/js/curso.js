@@ -14,6 +14,16 @@ if (!idCurso) {
 const alerta = document.getElementById("alerta-curso");
 let esProfesor = false;
 
+// id_clase -> estado de ESTE alumno en esa clase (lo llena cargarMiAsistencia)
+let estadoPorClase = {};
+
+const ETIQUETAS_ESTADO = {
+    presente: { texto: "Presente", clase: "text-bg-success" },
+    tarde: { texto: "Tarde", clase: "text-bg-warning" },
+    justificado: { texto: "Justificado", clase: "text-bg-info" },
+    ausente: { texto: "Ausente", clase: "text-bg-danger" },
+};
+
 function mostrarAlerta(texto, tipo) {
     alerta.textContent = texto;
     alerta.className = `alert alert-${tipo}`;
@@ -81,6 +91,10 @@ async function cargarCurso() {
             document.getElementById("form-publicacion").classList.remove("d-none");
             document.getElementById("card-bloqueados").classList.remove("d-none");
             cargarBloqueados();
+
+            document.getElementById("item-tab-seguimiento").classList.remove("d-none");
+            document.getElementById("btn-exportar").href = `/api/cursos/${idCurso}/exportar`;
+            cargarSeguimiento();
         }
 
         cargarClases();
@@ -299,6 +313,129 @@ async function desbloquearAlumno(b) {
 }
 
 /* =====================================================================
+   Seguimiento (solo profesor): resumen de asistencia de cada alumno
+   ===================================================================== */
+
+let alumnosSeguimiento = [];
+let ordenSeguimiento = { campo: "apellido", direccion: "asc" };
+
+// Cada comparador dice cuál de dos alumnos va primero según la columna elegida.
+// Devuelve negativo si "a" va antes, positivo si va después y 0 si empatan.
+const COMPARADORES = {
+    apellido: (a, b) => a.apellido.localeCompare(b.apellido, "es") || a.nombre.localeCompare(b.nombre, "es"),
+    asistidas: (a, b) => a.asistidas - b.asistidas,
+    // Sin clases tomadas el porcentaje es null: lo tratamos como -1 para que quede al final
+    porcentaje: (a, b) => (a.porcentaje ?? -1) - (b.porcentaje ?? -1),
+};
+
+async function cargarSeguimiento() {
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/resumen-alumnos`);
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo cargar el seguimiento", "danger");
+        return;
+    }
+
+    const total = respuesta.data.clases_totales;
+    document.getElementById("seg-clases-tomadas").textContent = `${total} ${total === 1 ? "clase tomada" : "clases tomadas"}`;
+
+    alumnosSeguimiento = respuesta.data.alumnos;
+    pintarSeguimiento();
+}
+
+function cambiarOrdenSeguimiento(campo) {
+    if (ordenSeguimiento.campo === campo) {
+        // Mismo encabezado otra vez: se invierte el orden
+        ordenSeguimiento.direccion = ordenSeguimiento.direccion === "asc" ? "desc" : "asc";
+    } else {
+        // Encabezado nuevo: apellido arranca de la A a la Z y las cifras de mayor a menor
+        ordenSeguimiento = { campo, direccion: campo === "apellido" ? "asc" : "desc" };
+    }
+    pintarSeguimiento();
+}
+
+function crearCeldaNumero(valor) {
+    const celda = document.createElement("td");
+    celda.className = "text-center";
+    celda.textContent = valor;
+    return celda;
+}
+
+function pintarSeguimiento() {
+    const hayAlumnos = alumnosSeguimiento.length > 0;
+    document.getElementById("seg-tabla").classList.toggle("d-none", !hayAlumnos);
+    document.getElementById("seg-sin-alumnos").classList.toggle("d-none", hayAlumnos);
+
+    // Marca en el encabezado cuál es la columna activa y hacia dónde ordena
+    document.querySelectorAll("#seguimiento-encabezado [data-orden]").forEach(boton => {
+        const activo = boton.dataset.orden === ordenSeguimiento.campo;
+        boton.classList.toggle("activo", activo);
+        boton.querySelector(".flecha-orden").textContent = activo
+            ? ordenSeguimiento.direccion === "asc" ? "▲" : "▼"
+            : "";
+        boton.closest("th").setAttribute(
+            "aria-sort",
+            activo ? (ordenSeguimiento.direccion === "asc" ? "ascending" : "descending") : "none"
+        );
+    });
+
+    const comparador = COMPARADORES[ordenSeguimiento.campo];
+    const sentido = ordenSeguimiento.direccion === "asc" ? 1 : -1;
+
+    // [...lista] hace una copia: sort() modifica el arreglo original y no queremos eso.
+    // Si dos alumnos empatan en la columna elegida, desempata el apellido.
+    const ordenados = [...alumnosSeguimiento].sort(
+        (a, b) => comparador(a, b) * sentido || COMPARADORES.apellido(a, b)
+    );
+
+    const cuerpo = document.getElementById("cuerpo-seguimiento");
+    cuerpo.innerHTML = "";
+
+    ordenados.forEach(alumno => {
+        const fila = document.createElement("tr");
+
+        const celdaNombre = document.createElement("td");
+        celdaNombre.className = "fw-semibold";
+        celdaNombre.textContent = `${alumno.apellido}, ${alumno.nombre}`;
+
+        const celdaPorcentaje = document.createElement("td");
+        celdaPorcentaje.className = "text-center";
+        if (alumno.porcentaje === null) {
+            celdaPorcentaje.textContent = "–";
+        } else {
+            const texto = document.createElement("div");
+            texto.className = "fw-bold";
+            texto.textContent = `${alumno.porcentaje}%`;
+
+            const barra = document.createElement("div");
+            barra.className = "progress progress-fino";
+            const relleno = document.createElement("div");
+            relleno.className = "progress-bar";
+            relleno.style.width = `${alumno.porcentaje}%`;
+            barra.appendChild(relleno);
+
+            celdaPorcentaje.append(texto, barra);
+        }
+
+        fila.append(
+            celdaNombre,
+            crearCeldaNumero(`${alumno.asistidas} / ${alumno.clases_totales}`),
+            celdaPorcentaje,
+            crearCeldaNumero(alumno.justificadas),
+            crearCeldaNumero(alumno.ausentes)
+        );
+        cuerpo.appendChild(fila);
+    });
+}
+
+// Un solo listener para todos los encabezados (delegación de eventos con closest)
+document.getElementById("seguimiento-encabezado").addEventListener("click", e => {
+    const boton = e.target.closest("[data-orden]");
+    if (!boton) return;
+    cambiarOrdenSeguimiento(boton.dataset.orden);
+});
+
+/* =====================================================================
    Tablón: publicaciones y comentarios
    ===================================================================== */
 
@@ -463,6 +600,47 @@ document.getElementById("form-publicacion").addEventListener("submit", async e =
    Clases
    ===================================================================== */
 
+// Trae el resumen de asistencia del alumno y pinta la tarjeta "Mi asistencia".
+// Los profesores no tienen asistencia propia, así que para ellos no hace nada.
+async function cargarMiAsistencia() {
+    if (esProfesor) return;
+
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/mi-asistencia`);
+
+    if (!respuesta.ok) {
+        mostrarAlerta(respuesta.data.error || "No se pudo cargar tu asistencia", "danger");
+        return;
+    }
+
+    estadoPorClase = {};
+    respuesta.data.registros.forEach(r => {
+        estadoPorClase[r.id_clase] = r.estado;
+    });
+
+    pintarResumenAsistencia(respuesta.data.resumen);
+}
+
+function pintarResumenAsistencia(resumen) {
+    document.getElementById("card-mi-asistencia").classList.remove("d-none");
+
+    const hayDatos = resumen.clases_totales > 0;
+    document.getElementById("asist-contenido").classList.toggle("d-none", !hayDatos);
+    document.getElementById("asist-vacio").classList.toggle("d-none", hayDatos);
+    if (!hayDatos) return;
+
+    document.getElementById("asist-asistidas").textContent = resumen.asistidas;
+    document.getElementById("asist-totales").textContent = resumen.clases_totales;
+    document.getElementById("asist-porcentaje").textContent = `${resumen.porcentaje}%`;
+    document.getElementById("asist-presentes").textContent = resumen.presentes;
+    document.getElementById("asist-tardes").textContent = resumen.tardes;
+    document.getElementById("asist-justificadas").textContent = resumen.justificadas;
+    document.getElementById("asist-ausentes").textContent = resumen.ausentes;
+
+    // El ancho de la barra se cambia desde JS con style.width
+    document.getElementById("asist-barra").style.width = `${resumen.porcentaje}%`;
+    document.getElementById("asist-progreso").setAttribute("aria-valuenow", resumen.porcentaje);
+}
+
 function formatearFecha(fechaISO) {
     const [anio, mes, dia] = fechaISO.split("-");
     return `${dia}/${mes}/${anio}`;
@@ -497,6 +675,15 @@ function renderizarClases(clases) {
             derecha.appendChild(badge);
         }
 
+        // Si es alumno y esa clase cuenta, mostramos cómo le quedó
+        const estado = estadoPorClase[clase.id_clase];
+        if (estado) {
+            const badgeEstado = document.createElement("span");
+            badgeEstado.className = `badge ${ETIQUETAS_ESTADO[estado].clase}`;
+            badgeEstado.textContent = ETIQUETAS_ESTADO[estado].texto;
+            derecha.appendChild(badgeEstado);
+        }
+
         const flecha = document.createElement("span");
         flecha.textContent = "›";
         derecha.appendChild(flecha);
@@ -508,6 +695,7 @@ function renderizarClases(clases) {
 
 async function cargarClases() {
     try {
+        await cargarMiAsistencia();
         const res = await fetch(`/api/cursos/${idCurso}/clases?id_usuario=${usuario.id_usuario}`);
         const data = await res.json();
 
@@ -521,6 +709,15 @@ async function cargarClases() {
         mostrarAlerta("No se pudo conectar con el servidor", "danger");
     }
 }
+
+// Al abrir el modal: el calendario no deja elegir días pasados y propone el de hoy.
+// "en-CA" da el formato AAAA-MM-DD que necesita un <input type="date">.
+document.getElementById("modal-nueva-clase").addEventListener("show.bs.modal", () => {
+    const hoy = new Date().toLocaleDateString("en-CA");
+    const campoFecha = document.getElementById("nueva-clase-fecha");
+    campoFecha.min = hoy;
+    campoFecha.value = hoy;
+});
 
 document.getElementById("form-nueva-clase").addEventListener("submit", async e => {
     e.preventDefault();
