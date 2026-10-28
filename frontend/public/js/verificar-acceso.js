@@ -1,9 +1,3 @@
-// Pantalla a la que llega la persona desde el correo "detectamos intentos fallidos":
-//   /verificar-acceso.html?token=<token>
-// Ofrece dos botones: "Sí, fui yo" (se desbloquea la cuenta) y "No fui yo"
-// (la cuenta queda bloqueada y se la lleva a elegir una contraseña nueva).
-// No usa sesion.js: quien llega acá no tiene sesión.
-
 const token = new URLSearchParams(window.location.search).get("token");
 
 const titulo = document.getElementById("titulo");
@@ -27,7 +21,6 @@ function crearEnlaceBoton(texto, href, clase) {
     return enlace;
 }
 
-// Reemplaza las dos opciones por un resultado final con un enlace para seguir
 function mostrarResultado({ tituloTexto, mensajeTexto, enlaceTexto, enlaceHref }) {
     titulo.textContent = tituloTexto;
     mensaje.textContent = mensajeTexto;
@@ -38,7 +31,6 @@ function mostrarResultado({ tituloTexto, mensajeTexto, enlaceTexto, enlaceHref }
 }
 
 async function responder(accion) {
-    // Se deshabilitan los botones para que un doble clic no mande dos pedidos
     botonFuiYo.disabled = true;
     botonNoFuiYo.disabled = true;
 
@@ -68,7 +60,6 @@ async function responder(accion) {
                 enlaceHref: "/login.html",
             });
         } else {
-            // La cuenta quedó bloqueada: se sigue directo a elegir la contraseña nueva
             window.location.href = `/restablecer.html?token=${encodeURIComponent(data.token_restablecer)}`;
         }
     } catch (err) {
@@ -91,8 +82,6 @@ if (!token) {
     validarEnlace();
 }
 
-// Apenas se abre la página se le pregunta al servidor si el enlace todavía sirve (no se
-// gasta nada): un enlace ya usado o vencido avisa enseguida, sin mostrar los botones.
 async function validarEnlace() {
     accionesPregunta.classList.add("d-none");
     try {
@@ -112,8 +101,6 @@ async function validarEnlace() {
             });
             return;
         }
-    } catch (err) {
-        // Sin conexión no podemos saberlo: se muestran los botones y el servidor valida al responder
-    }
+    } catch (err) {}
     accionesPregunta.classList.remove("d-none");
 }

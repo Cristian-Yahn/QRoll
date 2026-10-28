@@ -1,24 +1,9 @@
-// Modal de confirmación reutilizable. Se usa así, desde cualquier página que
-// cargue este script (después de Bootstrap):
-//
-//   const ok = await confirmar({
-//       titulo: "Eliminar alumno",
-//       mensaje: "¿Seguro?",
-//       textoConfirmar: "Eliminar",
-//       peligro: true,
-//   });
-//   if (!ok) return;
-//
-// Devuelve una promesa que se resuelve en true si la persona aceptó, y en
-// false si canceló o cerró el cuadro de cualquier otra forma.
-
 (function () {
     let modalEl = null;
     let modal = null;
     let resolver = null;
     let confirmado = false;
 
-    // El HTML del modal se crea la primera vez que hace falta
     function montar() {
         document.body.insertAdjacentHTML(
             "beforeend",
@@ -50,8 +35,6 @@
             modal.hide();
         });
 
-        // Se dispara cuando el modal terminó de cerrarse, sea cual sea el motivo.
-        // Recién ahí resolvemos la promesa con la decisión tomada.
         modalEl.addEventListener("hidden.bs.modal", () => {
             if (resolver) {
                 resolver(confirmado);

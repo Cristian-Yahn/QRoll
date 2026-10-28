@@ -1,7 +1,3 @@
-// Pantalla a la que llega el alumno al escanear el QR con la cámara del celular:
-//   /asistencia-rapida.html?t=<token>
-// No pide hacer nada más: apenas carga, registra la asistencia y muestra el resultado.
-
 const params = new URLSearchParams(window.location.search);
 const token = params.get("t");
 
@@ -11,8 +7,6 @@ const mensaje = document.getElementById("estado-mensaje");
 const detalle = document.getElementById("estado-detalle");
 const acciones = document.getElementById("estado-acciones");
 
-// Cada resultado posible: qué ícono, qué color y qué texto mostrar.
-// La clave coincide con el "codigo" que manda el servidor.
 const ESTADOS = {
     exito: {
         icono: "✓",
@@ -36,13 +30,15 @@ const ESTADOS = {
         icono: "!",
         color: "text-bg-warning",
         titulo: "La asistencia está cerrada",
-        mensaje: "El profesor ya cerró el registro de esta clase. Si llegaste tarde, avisale para que te cargue la asistencia.",
+        mensaje:
+            "El profesor ya cerró el registro de esta clase. Si llegaste tarde, avisale para que te cargue la asistencia.",
     },
     sin_permiso: {
         icono: "✕",
         color: "text-bg-danger",
         titulo: "No pertenecés a este curso",
-        mensaje: "Para registrar asistencia primero tenés que unirte al curso con su código de acceso, desde el inicio.",
+        mensaje:
+            "Para registrar asistencia primero tenés que unirte al curso con su código de acceso, desde el inicio.",
     },
     invalido: {
         icono: "✕",
@@ -73,17 +69,13 @@ function crearBoton(texto, clase, alHacerClic) {
     return boton;
 }
 
-// Dibuja un resultado. Todo texto que viene del servidor (nombre del curso, mensajes)
-// va con textContent, nunca con innerHTML, para que nadie pueda colar HTML.
 function mostrarEstado(claveRecibida, datos = {}) {
-    // Si el servidor manda un código que esta pantalla no conoce, se trata como error genérico
     const clave = ESTADOS[claveRecibida] ? claveRecibida : "error";
     const estado = ESTADOS[clave];
 
     icono.className = `rounded-circle d-inline-flex align-items-center justify-content-center mb-3 ${estado.color}`;
     icono.textContent = estado.icono;
     titulo.textContent = estado.titulo;
-    // Si el servidor mandó un mensaje propio para un error genérico, lo mostramos
     mensaje.textContent = clave === "error" && datos.error ? datos.error : estado.mensaje;
 
     if (datos.curso) {
@@ -96,16 +88,20 @@ function mostrarEstado(claveRecibida, datos = {}) {
 
     acciones.innerHTML = "";
     if (datos.id_curso) {
-        acciones.appendChild(crearBoton("Ir al curso", "btn-primary", () => {
-            window.location.href = `/curso.html?id=${datos.id_curso}`;
-        }));
+        acciones.appendChild(
+            crearBoton("Ir al curso", "btn-primary", () => {
+                window.location.href = `/curso.html?id=${datos.id_curso}`;
+            }),
+        );
     }
     if (clave === "sin_conexion") {
         acciones.appendChild(crearBoton("Reintentar", "btn-primary", () => window.location.reload()));
     }
-    acciones.appendChild(crearBoton("Ir al inicio", "btn-outline-secondary", () => {
-        window.location.href = "/index.html";
-    }));
+    acciones.appendChild(
+        crearBoton("Ir al inicio", "btn-outline-secondary", () => {
+            window.location.href = "/index.html";
+        }),
+    );
 }
 
 function formatearFecha(fechaISO) {
@@ -113,7 +109,6 @@ function formatearFecha(fechaISO) {
     return `${dia}/${mes}/${anio}`;
 }
 
-// Sin sesión: se manda al login y, al entrar, vuelve exactamente acá (parámetro "volver")
 function irAlLogin() {
     const volver = window.location.pathname + window.location.search;
     window.location.href = `/login.html?volver=${encodeURIComponent(volver)}`;
@@ -127,7 +122,6 @@ async function registrar() {
             body: JSON.stringify({ token }),
         });
 
-        // 401 = no hay sesión (o venció): sesion.js ya está redirigiendo al login
         if (res.status === 401) return;
 
         const data = await res.json();

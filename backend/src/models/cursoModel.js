@@ -7,7 +7,6 @@ function generarCodigoAcceso() {
 }
 
 const CursoModel = {
-    // Genera un código y se asegura de que no lo tenga ya otro curso
     generarCodigoUnico() {
         let codigo_acceso;
         let intentos = 0;

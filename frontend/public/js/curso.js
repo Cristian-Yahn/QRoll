@@ -14,7 +14,6 @@ if (!idCurso) {
 const alerta = document.getElementById("alerta-curso");
 let esProfesor = false;
 
-// id_clase -> estado de ESTE alumno en esa clase (lo llena cargarMiAsistencia)
 let estadoPorClase = {};
 
 const ETIQUETAS_ESTADO = {
@@ -34,11 +33,6 @@ function limpiarAlerta() {
     alerta.textContent = "";
 }
 
-// Hace el fetch, convierte la respuesta a JSON y devuelve { ok, data }.
-// Si no hay conexión con el servidor, devuelve ok: false con un mensaje de error,
-// así quien la llama solo tiene que mirar respuesta.ok. (Las funciones más
-// viejas de este archivo repiten este patrón a mano: pueden pasarse a esta
-// función como ejercicio.)
 async function llamarApi(url, metodo = "GET", cuerpo = null) {
     try {
         const opciones = { method: metodo };
@@ -53,10 +47,6 @@ async function llamarApi(url, metodo = "GET", cuerpo = null) {
         return { ok: false, data: { error: "No se pudo conectar con el servidor" } };
     }
 }
-
-/* =====================================================================
-   Datos del curso
-   ===================================================================== */
 
 async function cargarCurso() {
     try {
@@ -73,7 +63,6 @@ async function cargarCurso() {
         document.getElementById("nombre-curso").textContent = data.curso.nombre_curso;
         document.title = `${data.curso.nombre_curso} — QRoll`;
 
-        // La franja de color de la tarjeta y la etiqueta de rol dependen del rol
         document.getElementById("tarjeta-curso").classList.add(esProfesor ? "rol-profesor" : "rol-alumno");
 
         const badgeRol = document.getElementById("badge-rol");
@@ -105,7 +94,6 @@ async function cargarCurso() {
     }
 }
 
-// Botón "Copiar" del código de acceso
 const btnCopiar = document.getElementById("btn-copiar-codigo");
 btnCopiar.addEventListener("click", async () => {
     const codigo = document.getElementById("codigo-acceso").textContent;
@@ -121,7 +109,6 @@ btnCopiar.addEventListener("click", async () => {
     }
 });
 
-// Botón "Regenerar" del código de acceso
 document.getElementById("btn-regenerar-codigo").addEventListener("click", async () => {
     const confirmado = await confirmar({
         titulo: "Regenerar código de acceso",
@@ -145,10 +132,6 @@ document.getElementById("btn-regenerar-codigo").addEventListener("click", async 
     mostrarAlerta("Código regenerado. El anterior ya no sirve para unirse.", "success");
 });
 
-/* =====================================================================
-   Participantes: lista, eliminar, bloquear y desbloquear
-   ===================================================================== */
-
 function crearFilaParticipante(p) {
     const item = document.createElement("div");
     item.className = "list-group-item d-flex justify-content-between align-items-center gap-2 flex-wrap";
@@ -159,7 +142,6 @@ function crearFilaParticipante(p) {
     nombre.textContent = `${p.nombre} ${p.apellido}${p.id_usuario === usuario.id_usuario ? " (vos)" : ""}`;
     info.appendChild(nombre);
 
-    // El servidor solo manda el email cuando quien pregunta es profesor
     if (p.email) {
         const email = document.createElement("div");
         email.className = "small text-secondary-tema";
@@ -312,19 +294,12 @@ async function desbloquearAlumno(b) {
     cargarBloqueados();
 }
 
-/* =====================================================================
-   Seguimiento (solo profesor): resumen de asistencia de cada alumno
-   ===================================================================== */
-
 let alumnosSeguimiento = [];
 let ordenSeguimiento = { campo: "apellido", direccion: "asc" };
 
-// Cada comparador dice cuál de dos alumnos va primero según la columna elegida.
-// Devuelve negativo si "a" va antes, positivo si va después y 0 si empatan.
 const COMPARADORES = {
     apellido: (a, b) => a.apellido.localeCompare(b.apellido, "es") || a.nombre.localeCompare(b.nombre, "es"),
     asistidas: (a, b) => a.asistidas - b.asistidas,
-    // Sin clases tomadas el porcentaje es null: lo tratamos como -1 para que quede al final
     porcentaje: (a, b) => (a.porcentaje ?? -1) - (b.porcentaje ?? -1),
 };
 
@@ -337,7 +312,8 @@ async function cargarSeguimiento() {
     }
 
     const total = respuesta.data.clases_totales;
-    document.getElementById("seg-clases-tomadas").textContent = `${total} ${total === 1 ? "clase tomada" : "clases tomadas"}`;
+    document.getElementById("seg-clases-tomadas").textContent =
+        `${total} ${total === 1 ? "clase tomada" : "clases tomadas"}`;
 
     alumnosSeguimiento = respuesta.data.alumnos;
     pintarSeguimiento();
@@ -345,10 +321,8 @@ async function cargarSeguimiento() {
 
 function cambiarOrdenSeguimiento(campo) {
     if (ordenSeguimiento.campo === campo) {
-        // Mismo encabezado otra vez: se invierte el orden
         ordenSeguimiento.direccion = ordenSeguimiento.direccion === "asc" ? "desc" : "asc";
     } else {
-        // Encabezado nuevo: apellido arranca de la A a la Z y las cifras de mayor a menor
         ordenSeguimiento = { campo, direccion: campo === "apellido" ? "asc" : "desc" };
     }
     pintarSeguimiento();
@@ -366,27 +340,26 @@ function pintarSeguimiento() {
     document.getElementById("seg-tabla").classList.toggle("d-none", !hayAlumnos);
     document.getElementById("seg-sin-alumnos").classList.toggle("d-none", hayAlumnos);
 
-    // Marca en el encabezado cuál es la columna activa y hacia dónde ordena
     document.querySelectorAll("#seguimiento-encabezado [data-orden]").forEach(boton => {
         const activo = boton.dataset.orden === ordenSeguimiento.campo;
         boton.classList.toggle("activo", activo);
         boton.querySelector(".flecha-orden").textContent = activo
-            ? ordenSeguimiento.direccion === "asc" ? "▲" : "▼"
+            ? ordenSeguimiento.direccion === "asc"
+                ? "▲"
+                : "▼"
             : "";
-        boton.closest("th").setAttribute(
-            "aria-sort",
-            activo ? (ordenSeguimiento.direccion === "asc" ? "ascending" : "descending") : "none"
-        );
+        boton
+            .closest("th")
+            .setAttribute(
+                "aria-sort",
+                activo ? (ordenSeguimiento.direccion === "asc" ? "ascending" : "descending") : "none",
+            );
     });
 
     const comparador = COMPARADORES[ordenSeguimiento.campo];
     const sentido = ordenSeguimiento.direccion === "asc" ? 1 : -1;
 
-    // [...lista] hace una copia: sort() modifica el arreglo original y no queremos eso.
-    // Si dos alumnos empatan en la columna elegida, desempata el apellido.
-    const ordenados = [...alumnosSeguimiento].sort(
-        (a, b) => comparador(a, b) * sentido || COMPARADORES.apellido(a, b)
-    );
+    const ordenados = [...alumnosSeguimiento].sort((a, b) => comparador(a, b) * sentido || COMPARADORES.apellido(a, b));
 
     const cuerpo = document.getElementById("cuerpo-seguimiento");
     cuerpo.innerHTML = "";
@@ -422,22 +395,17 @@ function pintarSeguimiento() {
             crearCeldaNumero(`${alumno.asistidas} / ${alumno.clases_totales}`),
             celdaPorcentaje,
             crearCeldaNumero(alumno.justificadas),
-            crearCeldaNumero(alumno.ausentes)
+            crearCeldaNumero(alumno.ausentes),
         );
         cuerpo.appendChild(fila);
     });
 }
 
-// Un solo listener para todos los encabezados (delegación de eventos con closest)
 document.getElementById("seguimiento-encabezado").addEventListener("click", e => {
     const boton = e.target.closest("[data-orden]");
     if (!boton) return;
     cambiarOrdenSeguimiento(boton.dataset.orden);
 });
-
-/* =====================================================================
-   Tablón: publicaciones y comentarios
-   ===================================================================== */
 
 function formatearFechaHora(fechaSqlite) {
     const fecha = new Date(fechaSqlite.replace(" ", "T") + "Z");
@@ -596,12 +564,6 @@ document.getElementById("form-publicacion").addEventListener("submit", async e =
     }
 });
 
-/* =====================================================================
-   Clases
-   ===================================================================== */
-
-// Trae el resumen de asistencia del alumno y pinta la tarjeta "Mi asistencia".
-// Los profesores no tienen asistencia propia, así que para ellos no hace nada.
 async function cargarMiAsistencia() {
     if (esProfesor) return;
 
@@ -636,7 +598,6 @@ function pintarResumenAsistencia(resumen) {
     document.getElementById("asist-justificadas").textContent = resumen.justificadas;
     document.getElementById("asist-ausentes").textContent = resumen.ausentes;
 
-    // El ancho de la barra se cambia desde JS con style.width
     document.getElementById("asist-barra").style.width = `${resumen.porcentaje}%`;
     document.getElementById("asist-progreso").setAttribute("aria-valuenow", resumen.porcentaje);
 }
@@ -675,7 +636,6 @@ function renderizarClases(clases) {
             derecha.appendChild(badge);
         }
 
-        // Si es alumno y esa clase cuenta, mostramos cómo le quedó
         const estado = estadoPorClase[clase.id_clase];
         if (estado) {
             const badgeEstado = document.createElement("span");
@@ -710,8 +670,6 @@ async function cargarClases() {
     }
 }
 
-// Al abrir el modal: el calendario no deja elegir días pasados y propone el de hoy.
-// "en-CA" da el formato AAAA-MM-DD que necesita un <input type="date">.
 document.getElementById("modal-nueva-clase").addEventListener("show.bs.modal", () => {
     const hoy = new Date().toLocaleDateString("en-CA");
     const campoFecha = document.getElementById("nueva-clase-fecha");
@@ -746,9 +704,5 @@ document.getElementById("form-nueva-clase").addEventListener("submit", async e =
         mostrarAlerta("No se pudo conectar con el servidor", "danger");
     }
 });
-
-/* =====================================================================
-   Arranque
-   ===================================================================== */
 
 cargarCurso();

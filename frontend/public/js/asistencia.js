@@ -38,7 +38,6 @@ function formatearFecha(fechaISO) {
     return `${dia}/${mes}/${anio}`;
 }
 
-// SQLite guarda la hora en UTC como "YYYY-MM-DD HH:MM:SS"; la mostramos en hora local
 function formatearHora(fechaSqlite) {
     const fecha = new Date(fechaSqlite.replace(" ", "T") + "Z");
     return fecha.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
@@ -90,12 +89,6 @@ async function iniciar() {
     }
 }
 
-/* =====================================================================
-   PROFESOR: QR dinámico, carga manual e historial
-   ===================================================================== */
-
-// El token dura 20 s en el servidor; lo renovamos cada 15 s para que
-// siempre haya un margen de solapamiento y nadie quede con un código vencido.
 const INTERVALO_QR_SEG = 15;
 
 let qrObj = null;
@@ -106,8 +99,8 @@ let timerHistorial = null;
 let alumnos = [];
 let registrados = new Set();
 let claveSelectActual = "";
-let editandoId = null; // id_asistencia del registro que se está corrigiendo en la lista (null = ninguno)
-let ultimosRegistros = []; // el último historial recibido, para volver a dibujarlo sin pedirlo de nuevo
+let editandoId = null;
+let ultimosRegistros = [];
 let claseActual = null;
 
 function actualizarContador() {
@@ -135,9 +128,6 @@ async function generarQr() {
             return;
         }
 
-        // El QR ya no lleva solo el token: lleva un ENLACE. Así el alumno puede usar la
-        // cámara del celular (sin abrir nada antes), tocar el aviso y la asistencia se
-        // registra sola. Cada 15 s cambia el token, y por lo tanto el enlace.
         const enlace = `${window.location.origin}/asistencia-rapida.html?t=${data.token}`;
         document.getElementById("qr-token").textContent = enlace;
 
@@ -160,8 +150,6 @@ async function generarQr() {
     }
 }
 
-// Si el profesor abrió QRoll desde "localhost", el enlace del QR apuntaría a
-// localhost, que en el celular del alumno es el propio celular: no abre nada.
 function mostrarAvisoLocalhost() {
     const host = window.location.hostname;
     if (host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]") return;
@@ -196,8 +184,6 @@ function actualizarSelectAlumnos() {
     const boton = document.getElementById("manual-guardar");
     const pendientes = alumnos.filter(a => !registrados.has(a.id_usuario));
 
-    // Solo reconstruimos el select si cambió quiénes faltan, para no pisar
-    // la selección del profesor cada vez que se refresca el historial.
     const clave = pendientes.map(a => a.id_usuario).join(",");
     if (clave === claveSelectActual) return;
     claveSelectActual = clave;
@@ -229,8 +215,6 @@ function actualizarSelectAlumnos() {
     }
 }
 
-// Controles que reemplazan al estado mientras el profesor corrige un registro:
-// un desplegable con los estados y los botones Guardar / Cancelar
 function crearControlesEdicion(registro) {
     const select = document.createElement("select");
     select.className = "form-select form-select-sm w-auto";
@@ -314,11 +298,9 @@ function renderizarHistorial(registros) {
     });
 }
 
-// Manda la corrección al servidor. Se puede hacer aunque la asistencia ya esté cerrada.
 async function guardarEdicion(registro, estado, boton) {
     limpiarAlerta();
 
-    // Si no cambió nada, no hace falta molestar al servidor
     if (estado === registro.estado) {
         editandoId = null;
         renderizarHistorial(ultimosRegistros);
@@ -357,16 +339,11 @@ async function cargarHistorial() {
 
         registrados = new Set(data.registros.map(r => r.id_usuario));
         ultimosRegistros = data.registros;
-        // Esta función se ejecuta sola cada 8 segundos: si en ese momento el profesor está
-        // eligiendo un estado, redibujar la lista le cerraría el desplegable. Se guardan los
-        // datos nuevos pero se redibuja recién cuando termina de editar.
         if (editandoId === null) {
             renderizarHistorial(data.registros);
         }
         actualizarSelectAlumnos();
-    } catch (err) {
-        // Si falla un refresco automático no molestamos con una alerta; se reintenta solo
-    }
+    } catch (err) {}
 }
 
 async function cargarAlumnos() {
@@ -499,10 +476,6 @@ async function iniciarVistaProfesor() {
     });
 }
 
-/* =====================================================================
-   ALUMNO: escaneo de QR con la cámara
-   ===================================================================== */
-
 let lector = null;
 let escaneando = false;
 let procesando = false;
@@ -534,23 +507,19 @@ async function detenerEscaneo() {
         try {
             await lector.stop();
             lector.clear();
-        } catch (err) {
-            // Si ya estaba detenido no pasa nada
-        }
+        } catch (err) {}
         lector = null;
     }
     escaneando = false;
     boton.textContent = "Escanear código";
 }
 
-// Lo leído puede ser un enlace (QR nuevo: ".../asistencia-rapida.html?t=TOKEN")
-// o un token solo (código tipeado a mano, o QR viejo). Devuelve siempre el token.
 function extraerToken(texto) {
     const limpio = texto.trim();
     try {
         return new URL(limpio).searchParams.get("t") || limpio;
     } catch (err) {
-        return limpio; // no era una URL: ya es el token
+        return limpio;
     }
 }
 
@@ -576,7 +545,7 @@ async function iniciarEscaneo() {
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 240, height: 240 } },
             alLeerCodigo,
-            () => {}, // errores de lectura frame a frame: se ignoran
+            () => {},
         );
         escaneando = true;
         document.getElementById("btn-escanear").textContent = "Cancelar";

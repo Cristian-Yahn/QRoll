@@ -27,7 +27,6 @@
             <h1 class="h5 mb-1" id="titulo-clase">Clase</h1>
             <p class="text-secondary-tema small mb-4" id="subtitulo-rol"></p>
 
-            <!-- ===== Vista PROFESOR ===== -->
             <div id="vista-profesor" class="d-none">
                 <div class="row g-4">
                     <div class="col-12 col-md-5">
@@ -36,14 +35,17 @@
                             <button id="btn-abrir-asistencia" type="button" class="btn btn-sm btn-primary">
                                 Abrir asistencia
                             </button>
-                            <button id="btn-cerrar-asistencia" type="button" class="btn btn-sm btn-outline-danger d-none">
+                            <button
+                                id="btn-cerrar-asistencia"
+                                type="button"
+                                class="btn btn-sm btn-outline-danger d-none"
+                            >
                                 Cerrar asistencia
                             </button>
                         </div>
                         <div id="tarjeta-qr" class="card d-none">
                             <div class="card-body text-center">
                                 <h2 class="h6 mb-3">Código QR de la clase</h2>
-                                <!-- Fondo blanco fijo: el QR se lee mejor con contraste alto en cualquier tema -->
                                 <div
                                     id="qr-contenedor"
                                     class="mx-auto mb-2"
@@ -100,7 +102,6 @@
                 </div>
             </div>
 
-            <!-- ===== Vista ALUMNO ===== -->
             <div id="vista-alumno" class="d-none">
                 <div class="card mx-auto" style="max-width: 420px">
                     <div class="card-body text-center">

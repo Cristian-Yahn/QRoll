@@ -15,16 +15,11 @@ function limpiarAlerta() {
 document.getElementById("tab-login-btn").addEventListener("click", limpiarAlerta);
 document.getElementById("tab-registro-btn").addEventListener("click", limpiarAlerta);
 
-// A dónde ir después de iniciar sesión: la página que la persona quería abrir
-// (parámetro "volver") o el inicio. Se valida que sea una ruta de ESTE mismo sitio:
-// si no, alguien podría armar un enlace que, tras el login, mande a otra web (open redirect).
 function destinoDespuesDelLogin() {
     const volver = new URLSearchParams(window.location.search).get("volver");
     if (!volver || !volver.startsWith("/")) return "/index.html";
 
     try {
-        // new URL() interpreta la ruta como lo haría el navegador (incluye trucos con
-        // "//", "\\" o caracteres invisibles) y nos dice a qué sitio apuntaría de verdad
         const destino = new URL(volver, window.location.origin);
         if (destino.origin !== window.location.origin) return "/index.html";
         return destino.pathname + destino.search + destino.hash;
@@ -50,7 +45,6 @@ formLogin.addEventListener("submit", async e => {
         const data = await res.json();
 
         if (!res.ok) {
-            // 423 = la cuenta está en verificación o bloqueada: no es un simple error de tipeo
             mostrarAlerta(data.error || "No se pudo iniciar sesión", res.status === 423 ? "warning" : "danger");
             return;
         }
@@ -96,9 +90,6 @@ formRegistro.addEventListener("submit", async e => {
     }
 });
 
-// ----- Olvidé mi contraseña -----
-// No es otra página: al tocar el enlace, la tarjeta cambia de vista (se ocultan las
-// pestañas y aparece el formulario para pedir el enlace por correo).
 const vistaRecuperar = document.getElementById("vista-recuperar");
 const elementosAcceso = [document.getElementById("tabs"), document.querySelector(".tab-content")];
 
@@ -107,7 +98,6 @@ function mostrarRecuperar() {
     elementosAcceso.forEach(el => el.classList.add("d-none"));
     vistaRecuperar.classList.remove("d-none");
 
-    // Si ya había escrito el email en el login, lo reusamos
     const emailLogin = document.getElementById("login-email").value;
     if (emailLogin) document.getElementById("recuperar-email").value = emailLogin;
     document.getElementById("recuperar-email").focus();
@@ -132,7 +122,6 @@ document.getElementById("form-recuperar").addEventListener("submit", async e => 
         return;
     }
 
-    // Se deshabilita el botón mientras se envía para que un doble clic no pida dos correos
     const boton = document.getElementById("recuperar-enviar");
     boton.disabled = true;
     try {
@@ -150,9 +139,6 @@ document.getElementById("form-recuperar").addEventListener("submit", async e => 
     }
 });
 
-// ----- Avisos que llegan por la URL -----
-// ?aviso=contrasena_cambiada  -> venís de restablecer la contraseña
-// ?recuperar=1                -> un enlace del correo venció y hay que pedir otro
 const paramsUrl = new URLSearchParams(window.location.search);
 if (paramsUrl.get("aviso") === "contrasena_cambiada") {
     mostrarAlerta("Contraseña actualizada. Ya podés iniciar sesión con la nueva.", "success");

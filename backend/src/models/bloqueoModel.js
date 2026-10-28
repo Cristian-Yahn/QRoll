@@ -1,8 +1,6 @@
 const db = require("../config/db");
 
 const BloqueoModel = {
-    // Saca al alumno del curso Y lo bloquea, todo junto: o se hacen las dos
-    // cosas o no se hace ninguna (eso es una transacción).
     bloquearAlumno: db.transaction((id_curso, id_usuario) => {
         db.prepare(
             `

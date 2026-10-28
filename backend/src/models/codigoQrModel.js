@@ -14,8 +14,6 @@ const CodigoQrModel = {
         return db.prepare("SELECT * FROM Codigo_QR WHERE id_qr = ?").get(id_qr);
     },
 
-    // Busca el token sin importar si venció (sirve para saber a qué clase pertenece
-    // y poder distinguir "vencido" de "no existe")
     buscarPorToken(token) {
         return db.prepare("SELECT * FROM Codigo_QR WHERE token = ?").get(token);
     },

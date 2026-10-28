@@ -1,10 +1,4 @@
-// Este script se auto-inserta en cualquier página que lo incluya: crea el
-// botón flotante de preferencias y su modal, sin necesidad de repetir el
-// HTML en cada pantalla. Requiere que la página ya haya cargado Bootstrap
-// (CSS y JS) y /css/tema.css antes de este script.
-
 (function () {
-    // "color" es solo para el circulito del selector (el color de acento del tema)
     const TEMAS = [
         { valor: "claro", etiqueta: "Claro", color: "#2f6fed" },
         { valor: "menta", etiqueta: "Menta", color: "#15855a" },
@@ -34,7 +28,6 @@
             .join("");
     }
 
-    // Si en localStorage quedó guardado un tema que ya no existe, vuelve al claro
     function leerTemaGuardado() {
         const guardado = localStorage.getItem("tema");
         return TEMAS_VALIDOS.includes(guardado) ? guardado : "claro";
@@ -103,17 +96,11 @@
         });
     }
 
-    // Restaurar preferencias guardadas apenas carga la página (antes de pintar
-    // el modal, para que la web ya se vea con el tema/fuente correctos)
     document.documentElement.setAttribute("data-tema", leerTemaGuardado());
     document.documentElement.setAttribute("data-fuente", localStorage.getItem("fuente") || "mediana");
 
     document.addEventListener("DOMContentLoaded", montarPreferencias);
 
-    // Arregla un warning de accesibilidad de Bootstrap: si el foco del teclado
-    // queda dentro de un modal justo cuando este empieza a cerrarse, hay que
-    // sacarle el foco antes de que Bootstrap le ponga aria-hidden="true".
-    // Aplica a TODOS los modales de la página (preferencias, crear curso, etc.).
     document.addEventListener("hide.bs.modal", event => {
         if (event.target.contains(document.activeElement)) {
             document.activeElement.blur();
