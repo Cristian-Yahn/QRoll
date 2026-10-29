@@ -52,40 +52,34 @@ function estilizarItemLista(item) {
 async function iniciar() {
     document.getElementById("link-volver").href = `/curso.html?id=${idCurso}`;
 
-    try {
-        const resCurso = await fetch(`/api/cursos/${idCurso}?id_usuario=${usuario.id_usuario}`);
-        const dataCurso = await resCurso.json();
-        if (!resCurso.ok) {
-            mostrarAlerta(dataCurso.error || "No se pudo cargar el curso", "danger");
-            return;
-        }
+    const { ok: okCurso, data: dataCurso } = await llamarApi(`/api/cursos/${idCurso}`);
+    if (!okCurso) {
+        mostrarAlerta(dataCurso.error || "No se pudo cargar el curso", "danger");
+        return;
+    }
 
-        const resClases = await fetch(`/api/cursos/${idCurso}/clases?id_usuario=${usuario.id_usuario}`);
-        const dataClases = await resClases.json();
-        const clase = resClases.ok ? dataClases.clases.find(c => String(c.id_clase) === String(idClase)) : null;
-        claseActual = clase;
-        if (!clase) {
-            mostrarAlerta("La clase no existe en este curso", "danger");
-            return;
-        }
+    const { ok: okClases, data: dataClases } = await llamarApi(`/api/cursos/${idCurso}/clases`);
+    const clase = okClases ? dataClases.clases.find(c => String(c.id_clase) === String(idClase)) : null;
+    claseActual = clase;
+    if (!clase) {
+        mostrarAlerta("La clase no existe en este curso", "danger");
+        return;
+    }
 
-        const esProfesor = dataCurso.curso.rol_en_curso === "profesor";
+    const esProfesor = dataCurso.curso.rol_en_curso === "profesor";
 
-        document.getElementById("nombre-curso").textContent = dataCurso.curso.nombre_curso;
-        document.getElementById("titulo-clase").textContent = `Clase ${formatearFecha(clase.fecha)}`;
-        document.getElementById("subtitulo-rol").textContent = esProfesor
-            ? "Mostrá el código a tus alumnos o cargá la asistencia a mano."
-            : "Escaneá el código que muestra el profesor para registrar tu asistencia.";
+    document.getElementById("nombre-curso").textContent = dataCurso.curso.nombre_curso;
+    document.getElementById("titulo-clase").textContent = `Clase ${formatearFecha(clase.fecha)}`;
+    document.getElementById("subtitulo-rol").textContent = esProfesor
+        ? "Mostrá el código a tus alumnos o cargá la asistencia a mano."
+        : "Escaneá el código que muestra el profesor para registrar tu asistencia.";
 
-        if (esProfesor) {
-            document.getElementById("vista-profesor").classList.remove("d-none");
-            iniciarVistaProfesor();
-        } else {
-            document.getElementById("vista-alumno").classList.remove("d-none");
-            iniciarVistaAlumno();
-        }
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (esProfesor) {
+        document.getElementById("vista-profesor").classList.remove("d-none");
+        iniciarVistaProfesor();
+    } else {
+        document.getElementById("vista-alumno").classList.remove("d-none");
+        iniciarVistaAlumno();
     }
 }
 
@@ -108,46 +102,41 @@ function actualizarContador() {
 }
 
 async function generarQr() {
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/qr`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, status, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/qr`, "POST", {});
 
-        if (!res.ok) {
-            detenerRotacionQr();
-            if (res.status === 400) {
-                claseActual.estado = "cerrada";
-                actualizarUiEstado();
-                mostrarAlerta("La asistencia se cerró automáticamente (pasaron 3 horas desde la apertura)", "info");
-            } else {
-                mostrarAlerta(data.error || "No se pudo generar el código QR", "danger");
-            }
+    if (!ok) {
+        if (status === 0) {
+            mostrarAlerta(data.error, "danger");
             return;
         }
-
-        const enlace = `${window.location.origin}/asistencia-rapida.html?t=${data.token}`;
-        document.getElementById("qr-token").textContent = enlace;
-
-        const contenedor = document.getElementById("qr-contenedor");
-        if (!qrObj) {
-            qrObj = new QRCode(contenedor, {
-                text: enlace,
-                width: 220,
-                height: 220,
-                correctLevel: QRCode.CorrectLevel.M,
-            });
+        detenerRotacionQr();
+        if (status === 400) {
+            claseActual.estado = "cerrada";
+            actualizarUiEstado();
+            mostrarAlerta("La asistencia se cerró automáticamente (pasaron 3 horas desde la apertura)", "info");
         } else {
-            qrObj.makeCode(enlace);
+            mostrarAlerta(data.error || "No se pudo generar el código QR", "danger");
         }
-
-        cuentaRegresiva = INTERVALO_QR_SEG;
-        actualizarContador();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+        return;
     }
+
+    const enlace = `${window.location.origin}/asistencia-rapida.html?t=${data.token}`;
+    document.getElementById("qr-token").textContent = enlace;
+
+    const contenedor = document.getElementById("qr-contenedor");
+    if (!qrObj) {
+        qrObj = new QRCode(contenedor, {
+            text: enlace,
+            width: 220,
+            height: 220,
+            correctLevel: QRCode.CorrectLevel.M,
+        });
+    } else {
+        qrObj.makeCode(enlace);
+    }
+
+    cuentaRegresiva = INTERVALO_QR_SEG;
+    actualizarContador();
 }
 
 function mostrarAvisoLocalhost() {
@@ -269,7 +258,10 @@ function renderizarHistorial(registros) {
 
         const meta = document.createElement("span");
         meta.className = "text-secondary-tema";
-        meta.textContent = `${r.metodo === "qr" ? "QR" : "Manual"} · ${formatearHora(r.fecha_hora_registro)}`;
+        meta.textContent =
+            r.metodo === "automatico"
+                ? "Automático"
+                : `${r.metodo === "qr" ? "QR" : "Manual"} · ${formatearHora(r.fecha_hora_registro)}`;
         derecha.appendChild(meta);
 
         if (r.id_asistencia === editandoId) {
@@ -308,52 +300,40 @@ async function guardarEdicion(registro, estado, boton) {
     }
 
     boton.disabled = true;
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/${registro.id_asistencia}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ estado }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(
+        `/api/cursos/${idCurso}/clases/${idClase}/asistencia/${registro.id_asistencia}`,
+        "PATCH",
+        { estado },
+    );
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo actualizar la asistencia", "danger");
-            boton.disabled = false;
-            return;
-        }
-
-        mostrarAlerta(`Asistencia de ${registro.nombre} ${registro.apellido} actualizada`, "success");
-        editandoId = null;
-        await cargarHistorial();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo actualizar la asistencia", "danger");
         boton.disabled = false;
+        return;
     }
+
+    mostrarAlerta(`Asistencia de ${registro.nombre} ${registro.apellido} actualizada`, "success");
+    editandoId = null;
+    await cargarHistorial();
 }
 
 async function cargarHistorial() {
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/asistencia?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
-        if (!res.ok) return;
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/asistencia`);
+    if (!ok) return;
 
-        registrados = new Set(data.registros.map(r => r.id_usuario));
-        ultimosRegistros = data.registros;
-        if (editandoId === null) {
-            renderizarHistorial(data.registros);
-        }
-        actualizarSelectAlumnos();
-    } catch (err) {}
+    registrados = new Set(data.registros.map(r => r.id_usuario));
+    ultimosRegistros = data.registros;
+    if (editandoId === null) {
+        renderizarHistorial(data.registros);
+    }
+    actualizarSelectAlumnos();
 }
 
 async function cargarAlumnos() {
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/alumnos?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
-        if (res.ok) {
-            alumnos = data.alumnos;
-        }
-    } catch (err) {
+    const { ok, status, data } = await llamarApi(`/api/cursos/${idCurso}/alumnos`);
+    if (ok) {
+        alumnos = data.alumnos;
+    } else if (status === 0) {
         mostrarAlerta("No se pudo cargar el listado de alumnos", "danger");
     }
 }
@@ -372,25 +352,16 @@ function actualizarUiEstado() {
 
 async function abrirAsistencia() {
     limpiarAlerta();
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/abrir`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/abrir`, "POST", {});
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo abrir la asistencia", "danger");
-            return;
-        }
-
-        claseActual = data.clase;
-        actualizarUiEstado();
-        iniciarRotacionQr();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo abrir la asistencia", "danger");
+        return;
     }
+
+    claseActual = data.clase;
+    actualizarUiEstado();
+    iniciarRotacionQr();
 }
 
 async function cerrarAsistencia() {
@@ -403,25 +374,16 @@ async function cerrarAsistencia() {
     if (!confirmado) return;
 
     limpiarAlerta();
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/cerrar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/cerrar`, "POST", {});
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo cerrar la asistencia", "danger");
-            return;
-        }
-
-        claseActual = data.clase;
-        actualizarUiEstado();
-        detenerRotacionQr();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo cerrar la asistencia", "danger");
+        return;
     }
+
+    claseActual = data.clase;
+    actualizarUiEstado();
+    detenerRotacionQr();
 }
 
 async function iniciarVistaProfesor() {
@@ -455,24 +417,18 @@ async function iniciarVistaProfesor() {
         const estado = document.getElementById("manual-estado").value;
         if (!id_usuario_objetivo) return;
 
-        try {
-            const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/manual`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id_usuario_objetivo, estado, id_usuario: usuario.id_usuario }),
-            });
-            const data = await res.json();
+        const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/manual`, "POST", {
+            id_usuario_objetivo,
+            estado,
+        });
 
-            if (!res.ok) {
-                mostrarAlerta(data.error || "No se pudo guardar la asistencia", "danger");
-                return;
-            }
-
-            mostrarAlerta("Asistencia cargada correctamente", "success");
-            cargarHistorial();
-        } catch (err) {
-            mostrarAlerta("No se pudo conectar con el servidor", "danger");
+        if (!ok) {
+            mostrarAlerta(data.error || "No se pudo guardar la asistencia", "danger");
+            return;
         }
+
+        mostrarAlerta("Asistencia cargada correctamente", "success");
+        cargarHistorial();
     });
 }
 
@@ -482,23 +438,14 @@ let procesando = false;
 
 async function enviarToken(token) {
     limpiarAlerta();
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/qr`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token, id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases/${idClase}/asistencia/qr`, "POST", { token });
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo registrar la asistencia", "danger");
-            return;
-        }
-
-        mostrarAlerta("¡Asistencia registrada correctamente!", "success");
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo registrar la asistencia", "danger");
+        return;
     }
+
+    mostrarAlerta("¡Asistencia registrada correctamente!", "success");
 }
 
 async function detenerEscaneo() {

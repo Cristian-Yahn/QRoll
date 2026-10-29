@@ -16,6 +16,21 @@
         return respuesta;
     };
 
+    window.llamarApi = async function (url, metodo = "GET", cuerpo = null) {
+        try {
+            const opciones = { method: metodo };
+            if (cuerpo) {
+                opciones.headers = { "Content-Type": "application/json" };
+                opciones.body = JSON.stringify(cuerpo);
+            }
+            const res = await window.fetch(url, opciones);
+            const data = await res.json();
+            return { ok: res.ok, status: res.status, data };
+        } catch (err) {
+            return { ok: false, status: 0, data: { error: "No se pudo conectar con el servidor" } };
+        }
+    };
+
     window.cerrarSesion = async function () {
         try {
             await fetchOriginal("/api/auth/logout", { method: "POST" });

@@ -48,19 +48,14 @@ function renderizarCursos(cursos) {
 }
 
 async function cargarCursos() {
-    try {
-        const res = await fetch(`/api/cursos?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
+    const { ok, data } = await llamarApi("/api/cursos");
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudieron cargar los cursos", "danger");
-            return;
-        }
-
-        renderizarCursos(data.cursos);
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudieron cargar los cursos", "danger");
+        return;
     }
+
+    renderizarCursos(data.cursos);
 }
 
 // ----- Crear curso -----
@@ -70,26 +65,17 @@ document.getElementById("form-crear-curso").addEventListener("submit", async e =
 
     const nombre_curso = document.getElementById("crear-nombre-curso").value;
 
-    try {
-        const res = await fetch("/api/cursos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nombre_curso, id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi("/api/cursos", "POST", { nombre_curso });
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo crear el curso", "danger");
-            return;
-        }
-
-        bootstrap.Modal.getInstance(document.getElementById("modal-crear")).hide();
-        document.getElementById("form-crear-curso").reset();
-        mostrarAlerta(`Curso creado. Código de acceso: ${data.curso.codigo_acceso}`, "success");
-        cargarCursos();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo crear el curso", "danger");
+        return;
     }
+
+    bootstrap.Modal.getInstance(document.getElementById("modal-crear")).hide();
+    document.getElementById("form-crear-curso").reset();
+    mostrarAlerta(`Curso creado. Código de acceso: ${data.curso.codigo_acceso}`, "success");
+    cargarCursos();
 });
 
 // ----- Unirse a curso -----
@@ -99,26 +85,17 @@ document.getElementById("form-unirse-curso").addEventListener("submit", async e 
 
     const codigo_acceso = document.getElementById("unirse-codigo").value.toUpperCase();
 
-    try {
-        const res = await fetch("/api/cursos/unirse", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ codigo_acceso, id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi("/api/cursos/unirse", "POST", { codigo_acceso });
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo unir al curso", "danger");
-            return;
-        }
-
-        bootstrap.Modal.getInstance(document.getElementById("modal-unirse")).hide();
-        document.getElementById("form-unirse-curso").reset();
-        mostrarAlerta(`Te uniste a "${data.curso.nombre_curso}" correctamente`, "success");
-        cargarCursos();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo unir al curso", "danger");
+        return;
     }
+
+    bootstrap.Modal.getInstance(document.getElementById("modal-unirse")).hide();
+    document.getElementById("form-unirse-curso").reset();
+    mostrarAlerta(`Te uniste a "${data.curso.nombre_curso}" correctamente`, "success");
+    cargarCursos();
 });
 
 document.getElementById("btn-salir").addEventListener("click", async () => {

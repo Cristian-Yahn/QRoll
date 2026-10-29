@@ -19,7 +19,14 @@ const AsistenciaModel = {
     },
 
     actualizarEstado(id_asistencia, estado) {
-        db.prepare("UPDATE Asistencia SET estado = ? WHERE id_asistencia = ?").run(estado, id_asistencia);
+        db.prepare(
+            `
+      UPDATE Asistencia
+      SET metodo = CASE WHEN metodo = 'automatico' AND estado <> ? THEN 'manual' ELSE metodo END,
+          estado = ?
+      WHERE id_asistencia = ?
+    `,
+        ).run(estado, estado, id_asistencia);
         return this.buscarPorId(id_asistencia);
     },
 

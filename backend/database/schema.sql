@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS Asistencia (
   id_clase INTEGER NOT NULL,
   id_usuario INTEGER NOT NULL,
   estado TEXT NOT NULL CHECK (estado IN ('presente', 'ausente', 'tarde', 'justificado')),
-  metodo TEXT NOT NULL CHECK (metodo IN ('qr', 'manual')),
+  metodo TEXT NOT NULL CHECK (metodo IN ('qr', 'manual', 'automatico')),
   fecha_hora_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
   id_codigo_qr INTEGER,
   FOREIGN KEY (id_clase) REFERENCES Clase(id_clase),

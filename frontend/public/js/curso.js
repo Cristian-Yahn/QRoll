@@ -33,65 +33,79 @@ function limpiarAlerta() {
     alerta.textContent = "";
 }
 
-async function llamarApi(url, metodo = "GET", cuerpo = null) {
+async function exportarExcel(e) {
+    e.preventDefault();
+    const boton = e.currentTarget;
+    boton.classList.add("disabled");
+
     try {
-        const opciones = { method: metodo };
-        if (cuerpo) {
-            opciones.headers = { "Content-Type": "application/json" };
-            opciones.body = JSON.stringify(cuerpo);
+        const res = await fetch(`/api/cursos/${idCurso}/exportar`);
+
+        if (!res.ok) {
+            if (res.status !== 401) {
+                const data = await res.json().catch(() => ({}));
+                mostrarAlerta(data.error || "No se pudo exportar el Excel", "danger");
+            }
+            return;
         }
-        const res = await fetch(url, opciones);
-        const data = await res.json();
-        return { ok: res.ok, data };
+
+        const disposicion = res.headers.get("Content-Disposition") || "";
+        const nombreArchivo = (disposicion.match(/filename="([^"]+)"/) || [])[1] || "asistencia.xlsx";
+
+        const url = URL.createObjectURL(await res.blob());
+        const enlace = document.createElement("a");
+        enlace.href = url;
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        URL.revokeObjectURL(url);
     } catch (err) {
-        return { ok: false, data: { error: "No se pudo conectar con el servidor" } };
+        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    } finally {
+        boton.classList.remove("disabled");
     }
 }
 
 async function cargarCurso() {
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}`);
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo cargar el curso", "danger");
-            return;
-        }
-
-        esProfesor = data.curso.rol_en_curso === "profesor";
-
-        document.getElementById("nombre-curso").textContent = data.curso.nombre_curso;
-        document.title = `${data.curso.nombre_curso} — QRoll`;
-
-        document.getElementById("tarjeta-curso").classList.add(esProfesor ? "rol-profesor" : "rol-alumno");
-
-        const badgeRol = document.getElementById("badge-rol");
-        badgeRol.textContent = esProfesor ? "Profesor" : "Alumno";
-        badgeRol.className = `badge-rol mb-2 ${esProfesor ? "profesor" : "alumno"}`;
-
-        const cantidad = data.cantidad_alumnos;
-        document.getElementById("contador-alumnos").textContent =
-            `${cantidad} ${cantidad === 1 ? "alumno inscripto" : "alumnos inscriptos"}`;
-
-        if (esProfesor) {
-            document.getElementById("wrap-codigo").classList.remove("d-none");
-            document.getElementById("codigo-acceso").textContent = data.curso.codigo_acceso;
-            document.getElementById("btn-nueva-clase").classList.remove("d-none");
-            document.getElementById("form-publicacion").classList.remove("d-none");
-            document.getElementById("card-bloqueados").classList.remove("d-none");
-            cargarBloqueados();
-
-            document.getElementById("item-tab-seguimiento").classList.remove("d-none");
-            document.getElementById("btn-exportar").href = `/api/cursos/${idCurso}/exportar`;
-            cargarSeguimiento();
-        }
-
-        cargarClases();
-        cargarPublicaciones();
-        cargarParticipantes();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo cargar el curso", "danger");
+        return;
     }
+
+    esProfesor = data.curso.rol_en_curso === "profesor";
+
+    document.getElementById("nombre-curso").textContent = data.curso.nombre_curso;
+    document.title = `${data.curso.nombre_curso} — QRoll`;
+
+    document.getElementById("tarjeta-curso").classList.add(esProfesor ? "rol-profesor" : "rol-alumno");
+
+    const badgeRol = document.getElementById("badge-rol");
+    badgeRol.textContent = esProfesor ? "Profesor" : "Alumno";
+    badgeRol.className = `badge-rol mb-2 ${esProfesor ? "profesor" : "alumno"}`;
+
+    const cantidad = data.cantidad_alumnos;
+    document.getElementById("contador-alumnos").textContent =
+        `${cantidad} ${cantidad === 1 ? "alumno inscripto" : "alumnos inscriptos"}`;
+
+    if (esProfesor) {
+        document.getElementById("wrap-codigo").classList.remove("d-none");
+        document.getElementById("codigo-acceso").textContent = data.curso.codigo_acceso;
+        document.getElementById("btn-nueva-clase").classList.remove("d-none");
+        document.getElementById("form-publicacion").classList.remove("d-none");
+        document.getElementById("card-bloqueados").classList.remove("d-none");
+        cargarBloqueados();
+
+        document.getElementById("item-tab-seguimiento").classList.remove("d-none");
+        document.getElementById("btn-exportar").addEventListener("click", exportarExcel);
+        cargarSeguimiento();
+    }
+
+    cargarClases();
+    cargarPublicaciones();
+    cargarParticipantes();
 }
 
 const btnCopiar = document.getElementById("btn-copiar-codigo");
@@ -119,9 +133,7 @@ document.getElementById("btn-regenerar-codigo").addEventListener("click", async 
     if (!confirmado) return;
 
     limpiarAlerta();
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/regenerar-codigo`, "POST", {
-        id_usuario: usuario.id_usuario,
-    });
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/regenerar-codigo`, "POST", {});
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudo regenerar el código", "danger");
@@ -178,7 +190,7 @@ function crearFilaParticipante(p) {
 }
 
 async function cargarParticipantes() {
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes?id_usuario=${usuario.id_usuario}`);
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes`);
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudieron cargar los participantes", "danger");
@@ -204,9 +216,7 @@ async function eliminarAlumno(p) {
     if (!confirmado) return;
 
     limpiarAlerta();
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}`, "DELETE", {
-        id_usuario: usuario.id_usuario,
-    });
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}`, "DELETE", {});
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudo eliminar al alumno", "danger");
@@ -227,9 +237,7 @@ async function bloquearAlumno(p) {
     if (!confirmado) return;
 
     limpiarAlerta();
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}/bloquear`, "POST", {
-        id_usuario: usuario.id_usuario,
-    });
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/participantes/${p.id_usuario}/bloquear`, "POST", {});
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudo bloquear al alumno", "danger");
@@ -264,7 +272,7 @@ function crearFilaBloqueado(b) {
 }
 
 async function cargarBloqueados() {
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados?id_usuario=${usuario.id_usuario}`);
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados`);
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudieron cargar los bloqueados", "danger");
@@ -281,9 +289,7 @@ async function cargarBloqueados() {
 
 async function desbloquearAlumno(b) {
     limpiarAlerta();
-    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados/${b.id_usuario}`, "DELETE", {
-        id_usuario: usuario.id_usuario,
-    });
+    const respuesta = await llamarApi(`/api/cursos/${idCurso}/bloqueados/${b.id_usuario}`, "DELETE", {});
 
     if (!respuesta.ok) {
         mostrarAlerta(respuesta.data.error || "No se pudo desbloquear al alumno", "danger");
@@ -487,24 +493,19 @@ function crearTarjetaPublicacion(publicacion) {
         const contenido = input.value;
         if (!contenido) return;
 
-        try {
-            const res = await fetch(`/api/cursos/${idCurso}/publicaciones/${publicacion.id_publicacion}/comentarios`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contenido, id_usuario: usuario.id_usuario }),
-            });
-            const data = await res.json();
+        const { ok, data } = await llamarApi(
+            `/api/cursos/${idCurso}/publicaciones/${publicacion.id_publicacion}/comentarios`,
+            "POST",
+            { contenido },
+        );
 
-            if (!res.ok) {
-                mostrarAlerta(data.error || "No se pudo enviar el comentario", "danger");
-                return;
-            }
-
-            input.value = "";
-            cargarPublicaciones();
-        } catch (err) {
-            mostrarAlerta("No se pudo conectar con el servidor", "danger");
+        if (!ok) {
+            mostrarAlerta(data.error || "No se pudo enviar el comentario", "danger");
+            return;
         }
+
+        input.value = "";
+        cargarPublicaciones();
     });
 
     card.appendChild(formComentario);
@@ -512,29 +513,24 @@ function crearTarjetaPublicacion(publicacion) {
 }
 
 async function cargarPublicaciones() {
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/publicaciones?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/publicaciones`);
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo cargar el tablón", "danger");
-            return;
-        }
-
-        const lista = document.getElementById("lista-publicaciones");
-        const sinPublicaciones = document.getElementById("sin-publicaciones");
-        lista.innerHTML = "";
-
-        if (data.publicaciones.length === 0) {
-            sinPublicaciones.classList.remove("d-none");
-            return;
-        }
-        sinPublicaciones.classList.add("d-none");
-
-        data.publicaciones.forEach(p => lista.appendChild(crearTarjetaPublicacion(p)));
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo cargar el tablón", "danger");
+        return;
     }
+
+    const lista = document.getElementById("lista-publicaciones");
+    const sinPublicaciones = document.getElementById("sin-publicaciones");
+    lista.innerHTML = "";
+
+    if (data.publicaciones.length === 0) {
+        sinPublicaciones.classList.remove("d-none");
+        return;
+    }
+    sinPublicaciones.classList.add("d-none");
+
+    data.publicaciones.forEach(p => lista.appendChild(crearTarjetaPublicacion(p)));
 }
 
 document.getElementById("form-publicacion").addEventListener("submit", async e => {
@@ -544,24 +540,15 @@ document.getElementById("form-publicacion").addEventListener("submit", async e =
     const contenido = document.getElementById("publicacion-contenido").value;
     const enlace = document.getElementById("publicacion-enlace").value;
 
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/publicaciones`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contenido, enlace, id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/publicaciones`, "POST", { contenido, enlace });
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo publicar", "danger");
-            return;
-        }
-
-        document.getElementById("form-publicacion").reset();
-        cargarPublicaciones();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo publicar", "danger");
+        return;
     }
+
+    document.getElementById("form-publicacion").reset();
+    cargarPublicaciones();
 });
 
 async function cargarMiAsistencia() {
@@ -654,20 +641,15 @@ function renderizarClases(clases) {
 }
 
 async function cargarClases() {
-    try {
-        await cargarMiAsistencia();
-        const res = await fetch(`/api/cursos/${idCurso}/clases?id_usuario=${usuario.id_usuario}`);
-        const data = await res.json();
+    await cargarMiAsistencia();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases`);
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudieron cargar las clases", "danger");
-            return;
-        }
-
-        renderizarClases(data.clases);
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudieron cargar las clases", "danger");
+        return;
     }
+
+    renderizarClases(data.clases);
 }
 
 document.getElementById("modal-nueva-clase").addEventListener("show.bs.modal", () => {
@@ -683,26 +665,17 @@ document.getElementById("form-nueva-clase").addEventListener("submit", async e =
 
     const fecha = document.getElementById("nueva-clase-fecha").value;
 
-    try {
-        const res = await fetch(`/api/cursos/${idCurso}/clases`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fecha, id_usuario: usuario.id_usuario }),
-        });
-        const data = await res.json();
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/clases`, "POST", { fecha });
 
-        if (!res.ok) {
-            mostrarAlerta(data.error || "No se pudo crear la clase", "danger");
-            return;
-        }
-
-        bootstrap.Modal.getInstance(document.getElementById("modal-nueva-clase")).hide();
-        document.getElementById("form-nueva-clase").reset();
-        mostrarAlerta("Clase creada correctamente", "success");
-        cargarClases();
-    } catch (err) {
-        mostrarAlerta("No se pudo conectar con el servidor", "danger");
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo crear la clase", "danger");
+        return;
     }
+
+    bootstrap.Modal.getInstance(document.getElementById("modal-nueva-clase")).hide();
+    document.getElementById("form-nueva-clase").reset();
+    mostrarAlerta("Clase creada correctamente", "success");
+    cargarClases();
 });
 
 cargarCurso();
