@@ -48,6 +48,18 @@
             <div id="sin-cursos" class="text-center text-secondary-tema py-5 d-none">
                 Todavía no tenés cursos. Creá uno nuevo o unite con un código de acceso.
             </div>
+
+            <!-- Cursos archivados: plegados al final, solo aparece si hay alguno -->
+            <div id="seccion-archivados" class="mt-4 d-none">
+                <button
+                    type="button"
+                    id="btn-toggle-archivados"
+                    class="btn btn-link text-decoration-none px-0"
+                    aria-expanded="false"
+                    aria-controls="lista-archivados"
+                ></button>
+                <div id="lista-archivados" class="list-group d-none"></div>
+            </div>
         </div>
 
         <!-- Modal: crear curso -->

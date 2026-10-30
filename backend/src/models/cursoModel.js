@@ -2,7 +2,6 @@ const db = require("../config/db");
 const crypto = require("crypto");
 
 function generarCodigoAcceso() {
-    // Código corto y legible, tipo "A3F9K2": 6 caracteres, mayúsculas + números
     return crypto.randomBytes(4).toString("hex").toUpperCase().slice(0, 6);
 }
 
@@ -50,6 +49,18 @@ const CursoModel = {
     `,
             )
             .all(id_usuario);
+    },
+
+    archivar(id_curso) {
+        db.prepare("UPDATE Curso SET archivado = 1, fecha_archivado = CURRENT_TIMESTAMP WHERE id_curso = ?").run(
+            id_curso,
+        );
+        return this.buscarPorId(id_curso);
+    },
+
+    restaurar(id_curso) {
+        db.prepare("UPDATE Curso SET archivado = 0, fecha_archivado = NULL WHERE id_curso = ?").run(id_curso);
+        return this.buscarPorId(id_curso);
     },
 
     regenerarCodigo(id_curso) {

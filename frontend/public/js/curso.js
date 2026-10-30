@@ -13,6 +13,7 @@ if (!idCurso) {
 
 const alerta = document.getElementById("alerta-curso");
 let esProfesor = false;
+let cursoArchivado = false;
 
 let estadoPorClase = {};
 
@@ -67,6 +68,72 @@ async function exportarExcel(e) {
     }
 }
 
+function mostrarAccionesDelCurso() {
+    const aviso = document.getElementById("aviso-archivado");
+
+    if (esProfesor) {
+        document.getElementById("btn-archivar-curso").classList.toggle("d-none", cursoArchivado);
+        document.getElementById("btn-restaurar-curso").classList.toggle("d-none", !cursoArchivado);
+    } else {
+        document.getElementById("btn-salir-curso").classList.remove("d-none");
+    }
+
+    aviso.classList.toggle("d-none", !cursoArchivado);
+    if (cursoArchivado) {
+        aviso.textContent =
+            "Este curso está archivado: se conserva todo, pero no se pueden crear clases, publicar ni sumar alumnos." +
+            (esProfesor ? " Restauralo cuando quieras volver a usarlo." : "");
+        document.getElementById("btn-nueva-clase").classList.add("d-none");
+        document.getElementById("form-publicacion").classList.add("d-none");
+    }
+}
+
+document.getElementById("btn-archivar-curso").addEventListener("click", async () => {
+    const confirmado = await confirmar({
+        titulo: "Archivar curso",
+        mensaje:
+            'El curso pasa a "Archivados": no se van a poder crear clases, publicar ni sumar alumnos. No se pierde nada ' +
+            "y lo podés restaurar cuando quieras. Los alumnos lo van a ver también en Archivados.",
+        textoConfirmar: "Archivar",
+    });
+    if (!confirmado) return;
+
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/archivar`, "POST", {});
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo archivar el curso", "danger");
+        return;
+    }
+    window.location.href = "/index.html";
+});
+
+document.getElementById("btn-restaurar-curso").addEventListener("click", async () => {
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/restaurar`, "POST", {});
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo restaurar el curso", "danger");
+        return;
+    }
+    window.location.reload();
+});
+
+document.getElementById("btn-salir-curso").addEventListener("click", async () => {
+    const confirmado = await confirmar({
+        titulo: "Salir del curso",
+        mensaje:
+            "Vas a dejar de ver este curso. Tu asistencia queda guardada: si volvés a unirte con el código de acceso, " +
+            "la recuperás.",
+        textoConfirmar: "Salir del curso",
+        peligro: true,
+    });
+    if (!confirmado) return;
+
+    const { ok, data } = await llamarApi(`/api/cursos/${idCurso}/salir`, "POST", {});
+    if (!ok) {
+        mostrarAlerta(data.error || "No se pudo salir del curso", "danger");
+        return;
+    }
+    window.location.href = "/index.html";
+});
+
 async function cargarCurso() {
     const { ok, data } = await llamarApi(`/api/cursos/${idCurso}`);
 
@@ -90,6 +157,8 @@ async function cargarCurso() {
     document.getElementById("contador-alumnos").textContent =
         `${cantidad} ${cantidad === 1 ? "alumno inscripto" : "alumnos inscriptos"}`;
 
+    cursoArchivado = Boolean(data.curso.archivado);
+
     if (esProfesor) {
         document.getElementById("wrap-codigo").classList.remove("d-none");
         document.getElementById("codigo-acceso").textContent = data.curso.codigo_acceso;
@@ -102,6 +171,8 @@ async function cargarCurso() {
         document.getElementById("btn-exportar").addEventListener("click", exportarExcel);
         cargarSeguimiento();
     }
+
+    mostrarAccionesDelCurso();
 
     cargarClases();
     cargarPublicaciones();
@@ -508,6 +579,7 @@ function crearTarjetaPublicacion(publicacion) {
         cargarPublicaciones();
     });
 
+    if (cursoArchivado) formComentario.classList.add("d-none");
     card.appendChild(formComentario);
     return card;
 }

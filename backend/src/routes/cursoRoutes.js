@@ -12,6 +12,9 @@ const {
   bloquearParticipante,
   listarBloqueados,
   desbloquearParticipante,
+  archivar,
+  restaurar,
+  salir,
 } = require('../controllers/cursoController');
 const { miAsistenciaEnCurso } = require('../controllers/asistenciaController');
 const { resumenAlumnos, exportarExcel } = require('../controllers/reporteController');
@@ -27,6 +30,9 @@ router.get('/:id_curso/mi-asistencia', miAsistenciaEnCurso);
 router.get('/:id_curso/resumen-alumnos', resumenAlumnos);
 router.get('/:id_curso/exportar', exportarExcel);
 router.post('/:id_curso/regenerar-codigo', regenerarCodigo);
+router.post('/:id_curso/archivar', archivar);
+router.post('/:id_curso/restaurar', restaurar);
+router.post('/:id_curso/salir', salir);
 router.get('/:id_curso/participantes', listarParticipantes);
 router.delete('/:id_curso/participantes/:id_participante', eliminarParticipante);
 router.post('/:id_curso/participantes/:id_participante/bloquear', bloquearParticipante);

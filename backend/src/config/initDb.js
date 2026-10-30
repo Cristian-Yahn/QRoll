@@ -28,6 +28,13 @@ if (!columnaExiste("Usuario", "sesiones_validas_desde")) {
     db.exec(`ALTER TABLE Usuario ADD COLUMN sesiones_validas_desde DATETIME`);
 }
 
+if (!columnaExiste("Curso", "archivado")) {
+    db.exec(`ALTER TABLE Curso ADD COLUMN archivado INTEGER NOT NULL DEFAULT 0`);
+}
+if (!columnaExiste("Curso", "fecha_archivado")) {
+    db.exec(`ALTER TABLE Curso ADD COLUMN fecha_archivado DATETIME`);
+}
+
 const sqlAsistencia = db
     .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'Asistencia'")
     .get().sql;

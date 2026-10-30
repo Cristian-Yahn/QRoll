@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS Curso (
   nombre_curso TEXT NOT NULL,
   id_creador INTEGER NOT NULL,
   codigo_acceso TEXT NOT NULL UNIQUE,
+  archivado INTEGER NOT NULL DEFAULT 0,   -- 1 = el curso está archivado (se conserva todo, pero queda de solo lectura)
+  fecha_archivado DATETIME,
   FOREIGN KEY (id_creador) REFERENCES Usuario(id_usuario)
 );
 
